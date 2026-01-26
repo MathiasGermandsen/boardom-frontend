@@ -1,0 +1,82 @@
+@page "/"
+@page "/login"
+
+<PageTitle>BOARDOM - Login</PageTitle>
+
+<div class="login-page">
+    <!-- Animated background elements -->
+    <div class="bg-gradient"></div>
+    <div class="bg-blob blob-1"></div>
+    <div class="bg-blob blob-2"></div>
+    <div class="bg-accent"></div>
+
+    <div class="login-container">
+        <!-- Header Section -->
+        <div class="login-header">
+            <div class="logo-wrapper">
+                <div class="logo-container">
+                    <div class="logo-icon">◆</div>
+                </div>
+                <h1 class="logo-text">BOARDOM</h1>
+            </div>
+            <p class="login-subtitle">Smart Home Monitoring System</p>
+        </div>
+
+        <!-- Login Form Section -->
+        <form class="login-form">
+            <div class="form-group">
+                <label for="email" class="form-label">Email Address</label>
+                <div class="input-wrapper">
+                    <span class="input-icon">✉</span>
+                    <input 
+                        type="email" 
+                        id="email" 
+                        class="form-input" 
+                        placeholder="your@email.com"
+                        required 
+                    />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="password" class="form-label">Password</label>
+                <div class="input-wrapper">
+                    <span class="input-icon">🔐</span>
+                    <input 
+                        type="password" 
+                        id="password" 
+                        class="form-input" 
+                        placeholder="••••••••"
+                        required 
+                    />
+                </div>
+            </div>
+
+            <div class="form-options">
+                <label class="remember-me">
+                    <input type="checkbox" class="checkbox-input" />
+                    <span>Keep me logged in</span>
+                </label>
+                <a href="#" class="forgot-password">Need help?</a>
+            </div>
+
+            <button type="submit" class="btn-login">
+                <span>Access Dashboard</span>
+                <span class="btn-icon">→</span>
+            </button>
+        </form>
+
+        <!-- Footer Section -->
+        <div class="login-footer">
+            <p class="login-text">
+                New to BOARDOM? 
+                <a href="#" class="sign-up-link">Create account</a>
+            </p>
+            <div class="footer-divider"></div>
+            <p class="security-note">🔒 Secure login with encryption</p>
+        </div>
+    </div>
+
+    <!-- Background decoration -->
+    <div class="login-decoration"></div>
+</div>
