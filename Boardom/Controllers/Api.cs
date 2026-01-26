@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
+using Boardom.Components.Pages;
 using Microsoft.AspNetCore.Mvc;
 
 
@@ -22,18 +23,17 @@ public class HeartbeatController : ControllerBase
     {
       return BadRequest(new { success = false, message = "Device ID is required" });
     }
-
     try
         {
-            
+
             string encodedDeviceId = Uri.EscapeDataString(request.DeviceId);
-            var response = await _httpClient.GetAsync($"Device/{request.DeviceId}");
+            using var response = await _httpClient.GetAsync($"Device/{encodedDeviceId}");
 
             return Ok(new {success = response.IsSuccessStatusCode });
         }
         catch (Exception ex)
         {
-            return NotFound(ex.Message);
+            return StatusCode(500, new { success = false, ex.Message});
         }
 }
 
