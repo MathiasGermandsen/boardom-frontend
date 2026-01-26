@@ -2,13 +2,13 @@
 
 services:
   boardomapi:
-    image: boardomapi:latest
+    image: boardomfrontend:latest
     ports:
       - "13000:13000"
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:13000
-      - ApiSetting__DatabaseApiUrl=${IP_ADDRESS_PORT}
+      - ApiSettings__DatabaseApiUrl=${IP_ADDRESS_PORT}
     networks:
       - boardom-network
     deploy:
