@@ -1,7 +1,40 @@
-﻿services:
-  boardom:
-    image: boardom
-    build:
-      context: .
-      dockerfile: Boardom/Dockerfile
+﻿version: "3.8"
 
+services:
+  boardomapi:
+    image: boardomapi:latest
+    ports:
+      - "13000:13000"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:13000
+      - ApiSetting__DatabaseApiUrl=${IP_ADDRESS_PORT}
+    networks:
+      - boardom-network
+    deploy:
+      mode: replicated
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+      update_config:
+        parallelism: 1
+        delay: 10s
+        failure_action: rollback
+        order: start-first
+      rollback_config:
+        parallelism: 1
+        delay: 10s
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
+        reservations:
+          cpus: "0.25"
+          memory: 128M
+
+networks:
+  boardom-network:
+    driver: overlay
