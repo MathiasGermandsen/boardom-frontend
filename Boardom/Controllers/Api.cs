@@ -25,18 +25,15 @@ public class HeartbeatController : ControllerBase
 
     try
         {
+            
+            string encodedDeviceId = Uri.EscapeDataString(request.DeviceId);
             var response = await _httpClient.GetAsync($"Device/{request.DeviceId}");
 
-            if (response.IsSuccessStatusCode)
-            {
-                return Ok(new {success = true});
-            }
-            else { return Ok(new {success = false}); 
-            }
+            return Ok(new {success = response.IsSuccessStatusCode });
         }
         catch (Exception ex)
         {
-            return Ok(new {success = false });
+            return NotFound(ex.Message);
         }
 }
 

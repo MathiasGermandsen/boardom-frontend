@@ -9,9 +9,9 @@ builder.Services.AddRazorComponents()
 
 builder.Services.AddControllers();
 
-    builder.Services.AddHttpClient("DatabaseApi", client =>
+builder.Services.AddHttpClient("DatabaseApi", client =>
 {
-    client.BaseAddress = new Uri("http://10.133.51.103:8080/");
+    client.BaseAddress = new Uri(builder.Configuration["ApiSettings:DatabaseApiUrl"]);
     client.Timeout = TimeSpan.FromSeconds(10);
 });
 
