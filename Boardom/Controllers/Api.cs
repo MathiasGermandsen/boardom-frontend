@@ -7,11 +7,11 @@ using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
 [Route("api")]
-public class HeartbeatController : ControllerBase
+public class DeviceController : ControllerBase
 {
     private readonly HttpClient _httpClient;
 
-    public HeartbeatController(IHttpClientFactory httpClientFactory)
+    public DeviceController(IHttpClientFactory httpClientFactory)
     {
         _httpClient = httpClientFactory.CreateClient("DatabaseApi");
     }
@@ -36,6 +36,43 @@ public class HeartbeatController : ControllerBase
             return StatusCode(500, new { success = false, ex.Message});
         }
 }
+
+[HttpPost("addDevice")]
+
+public async Task<IActionResult> AddDevice([FromBody] DeviceIdBody request)
+  {
+    if (request == null || string.IsNullOrWhiteSpace(request.DeviceId))
+    {
+      return BadRequest(new { success = false, message = "Device ID is required"});
+    }
+    try
+    {
+      string encodedDeviceId = Uri.EscapeDataString(request.DeviceId);
+      using var getResponse = await _httpClient.GetAsync($"Device/{encodedDeviceId}");
+
+      if (getResponse.IsSuccessStatusCode)
+      {
+        return Ok(new { success = true});
+      }
+
+      HttpResponseMessage postResponse = await _httpClient.PostAsJsonAsync("Device/addDevice", request);
+
+      if (postResponse.IsSuccessStatusCode)
+      {
+        var result = await postResponse.Content.ReadAsStringAsync();
+        return Ok(new { success = true, data = result });
+      }
+      else
+      {
+        return StatusCode((int)postResponse.StatusCode, new { success = false, message = "Failed to add device" });
+      }
+    }
+    catch (Exception ex)
+    {
+      return StatusCode(500, new { success = false, ex.Message});
+    }
+  }
+
 
 public class DeviceIdBody
 {
