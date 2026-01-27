@@ -1,7 +1,0 @@
-﻿services:
-  boardom:
-    image: boardom
-    build:
-      context: .
-      dockerfile: Boardom/Dockerfile
-
