@@ -38,7 +38,6 @@ public class DeviceController : ControllerBase
 }
 
 [HttpPost("addDevice")]
-
 public async Task<IActionResult> AddDevice([FromBody] DeviceIdBody request)
   {
     if (request == null || string.IsNullOrWhiteSpace(request.DeviceId))

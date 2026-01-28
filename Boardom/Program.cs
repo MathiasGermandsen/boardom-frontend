@@ -1,4 +1,6 @@
 using Boardom.Components;
+using Auth0.AspNetCore.Authentication;
+using Microsoft.Extensions.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,12 +10,18 @@ builder.Services.AddRazorComponents()
 
 
 builder.Services.AddControllers();
-
 builder.Services.AddHttpClient("DatabaseApi", client =>
 {
-    client.BaseAddress = new Uri(builder.Configuration["ApiSettings:DatabaseApiUrl"]);
+    client.BaseAddress = new Uri(builder.Configuration["ApiSettings:DatabaseApiUrl"] ?? "http://localhost:8080/");
     client.Timeout = TimeSpan.FromSeconds(10);
 });
+
+builder.Services.AddAuth0WebAppAuthentication(options => {
+    options.Domain = builder.Configuration["Auth0:Domain"] ?? "";
+    options.ClientId = builder.Configuration["Auth0:ClientId"] ?? "";
+    options.ClientSecret = builder.Configuration["Auth0:ClientSecret"] ?? "";
+});
+
 
 var app = builder.Build();
 
@@ -28,6 +36,12 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseStaticFiles();
+
+app.UseRouting();
+
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.UseAntiforgery();
 
 app.MapControllers();
