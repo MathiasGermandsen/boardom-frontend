@@ -27,7 +27,7 @@ public class DeviceController : ControllerBase
         {
 
             string encodedDeviceId = Uri.EscapeDataString(request.DeviceId);
-            using var response = await _httpClient.GetAsync($"Device/{encodedDeviceId}");
+            using HttpResponseMessage response = await _httpClient.GetAsync($"Device/{encodedDeviceId}");
 
             return Ok(new {success = response.IsSuccessStatusCode });
         }
@@ -47,7 +47,7 @@ public async Task<IActionResult> AddDevice([FromBody] DeviceIdBody request)
     try
     {
       string encodedDeviceId = Uri.EscapeDataString(request.DeviceId);
-      using var getResponse = await _httpClient.GetAsync($"Device/{encodedDeviceId}");
+      using HttpResponseMessage getResponse = await _httpClient.GetAsync($"Device/{encodedDeviceId}");
 
       if (getResponse.IsSuccessStatusCode)
       {
@@ -58,7 +58,7 @@ public async Task<IActionResult> AddDevice([FromBody] DeviceIdBody request)
 
       if (postResponse.IsSuccessStatusCode)
       {
-        var result = await postResponse.Content.ReadAsStringAsync();
+        string result = await postResponse.Content.ReadAsStringAsync();
         return Ok(new { success = true, data = result });
       }
       else

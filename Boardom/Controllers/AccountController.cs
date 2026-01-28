@@ -10,21 +10,21 @@ public class AccountController : Controller
 {
     public async Task Login(string returnUrl = "/home")
     {
-        var AuthenticationProperties = new LoginAuthenticationPropertiesBuilder()
+        var authenticationProperties = new LoginAuthenticationPropertiesBuilder()
         .WithRedirectUri(returnUrl)
         .Build();
 
-        await HttpContext.ChallengeAsync(Auth0Constants.AuthenticationScheme, AuthenticationProperties);
+        await HttpContext.ChallengeAsync(Auth0Constants.AuthenticationScheme, authenticationProperties);
     }
 
     [Authorize]
     public async Task Logout()
     {
-        var AuthenticationProperties = new LogoutAuthenticationPropertiesBuilder()
+        var authenticationProperties = new LogoutAuthenticationPropertiesBuilder()
         .WithRedirectUri(Url.Action("Index", "Home"))
         .Build();
 
-        await HttpContext.SignOutAsync(Auth0Constants.AuthenticationScheme, AuthenticationProperties);
+        await HttpContext.SignOutAsync(Auth0Constants.AuthenticationScheme, authenticationProperties);
         await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
     }
 }

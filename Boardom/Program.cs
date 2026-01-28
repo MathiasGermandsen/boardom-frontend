@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddRazorComponents()
+builder.Services.AddzRazorComponents()
     .AddInteractiveServerComponents();
 
 
@@ -21,24 +21,22 @@ if (string.IsNullOrWhiteSpace(auth0Domain))
 {
     throw new InvalidOperationException("Auth0 configuration error: 'Auth0:Domain' is missing or empty.");
 }
-
 var auth0ClientId = builder.Configuration["Auth0:ClientId"];
 if (string.IsNullOrWhiteSpace(auth0ClientId))
 {
     throw new InvalidOperationException("Auth0 configuration error: 'Auth0:ClientId' is missing or empty.");
 }
-
 var auth0ClientSecret = builder.Configuration["Auth0:ClientSecret"];
 if (string.IsNullOrWhiteSpace(auth0ClientSecret))
 {
     throw new InvalidOperationException("Auth0 configuration error: 'Auth0:ClientSecret' is missing or empty.");
 }
-
 builder.Services.AddAuth0WebAppAuthentication(options =>
 {
     options.Domain = auth0Domain;
     options.ClientId = auth0ClientId;
     options.ClientSecret = auth0ClientSecret;
+
 });
 
 
