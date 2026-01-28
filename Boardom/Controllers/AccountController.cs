@@ -21,7 +21,7 @@ public class AccountController : Controller
     public async Task Logout()
     {
         var authenticationProperties = new LogoutAuthenticationPropertiesBuilder()
-        .WithRedirectUri(Url.Action("Index", "Home"))
+        .WithRedirectUri(Url.Action("Index", "/"))
         .Build();
 
         await HttpContext.SignOutAsync(Auth0Constants.AuthenticationScheme, authenticationProperties);
