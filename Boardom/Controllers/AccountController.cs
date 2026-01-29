@@ -22,7 +22,7 @@ public class AccountController : Controller
     public IActionResult Logout()
     {
         var authenticationProperties = new LogoutAuthenticationPropertiesBuilder()
-        .WithRedirectUri(Url.Action("Index", "/"))
+        .WithRedirectUri(Url.Content("~/"))
         .Build();
 
         return SignOut(authenticationProperties, Auth0Constants.AuthenticationScheme, CookieAuthenticationDefaults.AuthenticationScheme);

@@ -1,6 +1,4 @@
-﻿@inject NavigationManager Navigation
-
-<div class="top-row navbar navbar-dark navbar-boardom">
+﻿<div class="top-row navbar navbar-dark navbar-boardom">
     <div class="navbar-container">
         <a class="navbar-brand" href="">
             <span class="brand-icon">◆</span>
@@ -60,10 +58,3 @@
         </div>
     </nav>
 </div>
-
-@code {
-    private void HandleLogout()
-    {
-        Navigation.NavigateTo("/Account/Logout", forceLoad: true);
-    }
-}
