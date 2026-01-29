@@ -8,23 +8,23 @@ using Microsoft.AspNetCore.Mvc;
 [Route("[controller]/[action]")]
 public class AccountController : Controller
 {
-    public async Task Login(string returnUrl = "/home")
+    public IActionResult Login(string returnUrl = "/home")
     {
         var authenticationProperties = new LoginAuthenticationPropertiesBuilder()
         .WithRedirectUri(returnUrl)
         .Build();
 
-        await HttpContext.ChallengeAsync(Auth0Constants.AuthenticationScheme, authenticationProperties);
+        return Challenge(authenticationProperties,Auth0Constants.AuthenticationScheme);
     }
 
     [Authorize]
-    public async Task Logout()
+
+    public IActionResult Logout()
     {
         var authenticationProperties = new LogoutAuthenticationPropertiesBuilder()
         .WithRedirectUri(Url.Action("Index", "/"))
         .Build();
 
-        await HttpContext.SignOutAsync(Auth0Constants.AuthenticationScheme, authenticationProperties);
-        await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+        return SignOut(authenticationProperties, Auth0Constants.AuthenticationScheme, CookieAuthenticationDefaults.AuthenticationScheme);
     }
 }

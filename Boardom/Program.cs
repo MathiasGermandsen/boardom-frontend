@@ -10,6 +10,7 @@ builder.Services.AddRazorComponents()
 
 
 builder.Services.AddControllers();
+
 builder.Services.AddHttpClient("DatabaseApi", client =>
 {
     client.BaseAddress = new Uri(builder.Configuration["ApiSettings:DatabaseApiUrl"] ?? "http://localhost:8080/");
