@@ -1,6 +1,10 @@
 using Boardom.Components;
 using Auth0.AspNetCore.Authentication;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,25 +13,41 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 
-builder.Services.AddControllers();
+builder.Services.AddControllersWithViews();
+
+builder.Services.AddAntiforgery(options =>
+{
+    options.HeaderName = "X-CSRF-TOKEN";
+    options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+    options.Cookie.SameSite = SameSiteMode.Lax;
+    options.Cookie.HttpOnly = true;
+});
+
+builder.Services.Configure<CookieAuthenticationOptions>(
+    CookieAuthenticationDefaults.AuthenticationScheme,
+    options =>
+    {
+        options.Cookie.SameSite = SameSiteMode.Lax;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+        options.Cookie.HttpOnly = true;
+    });
 
 builder.Services.AddHttpClient("DatabaseApi", client =>
 {
     client.BaseAddress = new Uri(builder.Configuration["ApiSettings:DatabaseApiUrl"] ?? "http://localhost:8080/");
     client.Timeout = TimeSpan.FromSeconds(10);
 });
-
-var auth0Domain = builder.Configuration["Auth0:Domain"];
+string auth0Domain = builder.Configuration["Auth0:Domain"];
 if (string.IsNullOrWhiteSpace(auth0Domain))
 {
     throw new InvalidOperationException("Auth0 configuration error: 'Auth0:Domain' is missing or empty.");
 }
-var auth0ClientId = builder.Configuration["Auth0:ClientId"];
+string auth0ClientId = builder.Configuration["Auth0:ClientId"];
 if (string.IsNullOrWhiteSpace(auth0ClientId))
 {
     throw new InvalidOperationException("Auth0 configuration error: 'Auth0:ClientId' is missing or empty.");
 }
-var auth0ClientSecret = builder.Configuration["Auth0:ClientSecret"];
+string auth0ClientSecret = builder.Configuration["Auth0:ClientSecret"];
 if (string.IsNullOrWhiteSpace(auth0ClientSecret))
 {
     throw new InvalidOperationException("Auth0 configuration error: 'Auth0:ClientSecret' is missing or empty.");
@@ -38,6 +58,18 @@ builder.Services.AddAuth0WebAppAuthentication(options =>
     options.ClientId = auth0ClientId;
     options.ClientSecret = auth0ClientSecret;
 
+     options.OpenIdConnectEvents = new OpenIdConnectEvents
+    {
+        OnRemoteFailure = context =>
+        {
+            if (context.Failure.Message.Contains("access_denied"))
+            {
+                context.Response.Redirect("/");
+                context.HandleResponse();
+            }
+            return Task.CompletedTask;
+        }
+    };
 });
 
 
@@ -54,6 +86,15 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseStaticFiles();
+
+app.Use(async (context, next) =>
+{
+    context.Response.Headers.Append("X-Frame-Options", "DENY");
+    context.Response.Headers.Append("X-Content-Type-Options", "nosniff");
+    context.Response.Headers.Append("Referrer-Policy", "strict-origin-when-cross-origin");
+    await next();
+}
+);
 
 app.UseRouting();
 

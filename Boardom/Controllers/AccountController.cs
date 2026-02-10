@@ -8,6 +8,8 @@ using Microsoft.AspNetCore.Mvc;
 [Route("[controller]/[action]")]
 public class AccountController : Controller
 {
+    [HttpPost]
+    [ValidateAntiForgeryToken]
     public IActionResult Login(string returnUrl = "/home")
     {
         var authenticationProperties = new LoginAuthenticationPropertiesBuilder()
@@ -18,7 +20,8 @@ public class AccountController : Controller
     }
 
     [Authorize]
-
+    [HttpPost]
+    [ValidateAntiForgeryToken]
     public IActionResult Logout()
     {
         var authenticationProperties = new LogoutAuthenticationPropertiesBuilder()
