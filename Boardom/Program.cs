@@ -14,6 +14,7 @@ builder.Services.AddRazorComponents()
 
 
 builder.Services.AddControllersWithViews();
+builder.Services.AddAuthorization();
 
 builder.Services.AddAntiforgery(options =>
 {
