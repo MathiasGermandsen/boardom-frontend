@@ -74,7 +74,6 @@ builder.Services.AddAuth0WebAppAuthentication(options =>
     };
 });
 
-
 builder.Services.AddHealthChecks();
 
 var app = builder.Build();

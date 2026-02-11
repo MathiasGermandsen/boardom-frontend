@@ -45,5 +45,17 @@
                 </NavLink>
             </div>
         </div>
+        <div class="nav-section">
+         <div class="nav-section-title">Account</div>
+            <div class="nav-item">
+                <form method="post" action="/Account/Logout" style="display: contents;">
+                    <AntiforgeryToken />
+                    <button type="submit" class="nav-link logout-btn">
+                        <span class="nav-icon">🚪</span>
+                        <span class="nav-text">Logout</span>
+                    </button>
+                </form>
+            </div>
+        </div>
     </nav>
 </div>
