@@ -8,20 +8,32 @@ using Microsoft.AspNetCore.Mvc;
 [Route("[controller]/[action]")]
 public class AccountController : Controller
 {
+
+    [HttpGet]
+    public IActionResult Login(string returnUrl = "/home")
+    {
+        return HandleLogin(returnUrl);
+    }
+
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public IActionResult Login(string returnUrl = "/home")
+    public IActionResult LoginPost(string returnUrl = "/home")
+    {
+        return HandleLogin(returnUrl);
+    }
+
+    private IActionResult HandleLogin(string returnUrl)
     {
         if (!Url.IsLocalUrl(returnUrl))
         {
-            returnUrl = "/home";    
+            returnUrl = "/home";
         }
 
         var authenticationProperties = new LoginAuthenticationPropertiesBuilder()
-        .WithRedirectUri(returnUrl)
-        .Build();
+            .WithRedirectUri(returnUrl)
+            .Build();
 
-        return Challenge(authenticationProperties,Auth0Constants.AuthenticationScheme);
+        return Challenge(authenticationProperties, Auth0Constants.AuthenticationScheme);
     }
 
     [Authorize]
