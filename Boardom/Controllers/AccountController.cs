@@ -12,6 +12,11 @@ public class AccountController : Controller
     [HttpGet]
     public IActionResult Login(string returnUrl = "/home")
     {
+        if (User.Identity?.IsAuthenticated == true)
+        {
+            return Redirect(returnUrl);
+        }
+
         return HandleLogin(returnUrl);
     }
 
@@ -41,6 +46,8 @@ public class AccountController : Controller
     [ValidateAntiForgeryToken]
     public IActionResult Logout()
     {
+        var baseUrl = $"{Request.Scheme}://{Request.Host}";
+        
         var authenticationProperties = new LogoutAuthenticationPropertiesBuilder()
         .WithRedirectUri(Url.Content("~/"))
         .Build();
