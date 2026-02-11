@@ -35,7 +35,7 @@ builder.Services.Configure<CookieAuthenticationOptions>(
 
 builder.Services.AddHttpClient("DatabaseApi", client =>
 {
-    client.BaseAddress = new Uri(builder.Configuration["ApiSettings:DatabaseApiUrl"] ?? "http://localhost:8080/");
+    client.BaseAddress = new Uri(builder.Configuration["ApiSettings:DatabaseApiUrl"]);
     client.Timeout = TimeSpan.FromSeconds(10);
 });
 string auth0Domain = builder.Configuration["Auth0:Domain"];
@@ -63,7 +63,7 @@ builder.Services.AddAuth0WebAppAuthentication(options =>
     {
         OnRemoteFailure = context =>
         {
-            if (context.Failure.Message.Contains("access_denied"))
+            if (context.Failure.Message == null || string.Equals(context.Failure.Message, "access_denied", StringComparison.OrdinalIgnoreCase))
             {
                 context.Response.Redirect("/");
                 context.HandleResponse();
@@ -86,8 +86,6 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseStaticFiles();
-
 app.Use(async (context, next) =>
 {
     context.Response.Headers.Append("X-Frame-Options", "DENY");
@@ -96,6 +94,9 @@ app.Use(async (context, next) =>
     await next();
 }
 );
+
+app.UseStaticFiles();
+
 
 app.UseRouting();
 

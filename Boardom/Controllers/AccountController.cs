@@ -12,6 +12,11 @@ public class AccountController : Controller
     [ValidateAntiForgeryToken]
     public IActionResult Login(string returnUrl = "/home")
     {
+        if (!Url.IsLocalUrl(returnUrl))
+        {
+            returnUrl = "/home";    
+        }
+
         var authenticationProperties = new LoginAuthenticationPropertiesBuilder()
         .WithRedirectUri(returnUrl)
         .Build();
