@@ -64,7 +64,8 @@ builder.Services.AddAuth0WebAppAuthentication(options =>
     {
         OnRemoteFailure = context =>
         {
-            if (context.Failure.Message == null || string.Equals(context.Failure.Message, "access_denied", StringComparison.OrdinalIgnoreCase))
+            if (context.Failure.Message != null && 
+            context.Failure.Message.Contains ("access_denied", StringComparison.OrdinalIgnoreCase))
             {
                 context.Response.Redirect("/");
                 context.HandleResponse();
