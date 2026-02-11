@@ -79,10 +79,10 @@ builder.Services.AddHealthChecks();
 
 var app = builder.Build();
 
-// Support reverse proxy (Traefik in Dokploy)
+// Support reverse proxy (Cloudflare Tunnel)
 app.UseForwardedHeaders(new ForwardedHeadersOptions
 {
-    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedHost
 });
 
 // Configure the HTTP request pipeline.
