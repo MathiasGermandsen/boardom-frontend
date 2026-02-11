@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
 [Route("api")]
+[IgnoreAntiforgeryToken]
 public class DeviceController : ControllerBase
 {
     private readonly HttpClient _httpClient;
