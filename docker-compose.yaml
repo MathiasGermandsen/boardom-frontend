@@ -6,7 +6,7 @@
     ports:
       - "13000:13000"
     environment:
-      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:13000
       - ApiSettings__DatabaseApiUrl=${IP_ADDRESS_PORT}
       - Auth0__Domain=${AUTH0_DOMAIN}
