@@ -1,40 +1,27 @@
-﻿version: "3.8"
-
-services:
-  boardomapi:
-    image: boardomfrontend:latest
+﻿services:
+  boardom-frontend:
+    build:
+      context: ./Boardom
+      dockerfile: Dockerfile
     ports:
       - "13000:13000"
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:13000
       - ApiSettings__DatabaseApiUrl=${IP_ADDRESS_PORT}
+      - Auth0__Domain=${AUTH0_DOMAIN}
+      - Auth0__ClientId=${AUTH0_CLIENT_ID}
+      - Auth0__ClientSecret=${AUTH0_CLIENT_SECRET}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:13000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
     networks:
       - boardom-network
-    deploy:
-      mode: replicated
-      replicas: 2
-      restart_policy:
-        condition: on-failure
-        delay: 5s
-        max_attempts: 3
-        window: 120s
-      update_config:
-        parallelism: 1
-        delay: 10s
-        failure_action: rollback
-        order: start-first
-      rollback_config:
-        parallelism: 1
-        delay: 10s
-      resources:
-        limits:
-          cpus: "1.0"
-          memory: 512M
-        reservations:
-          cpus: "0.25"
-          memory: 128M
 
 networks:
   boardom-network:
-    driver: overlay
+    driver: bridge
