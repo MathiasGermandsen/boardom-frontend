@@ -27,34 +27,7 @@
         transparent 50%,
         rgba(44, 90, 160, 0.03) 75%,
         transparent 100%);
-    animation: gradientShift 15s ease infinite;
     pointer-events: none;
-}
-
-.bg-blob {
-    position: absolute;
-    border-radius: 50%;
-    opacity: 0.1;
-    filter: blur(60px);
-    pointer-events: none;
-}
-
-.blob-1 {
-    width: 500px;
-    height: 500px;
-    background: #3b7dd9;
-    top: -200px;
-    right: -100px;
-    animation: float 6s ease-in-out infinite;
-}
-
-.blob-2 {
-    width: 400px;
-    height: 400px;
-    background: #2c5aa0;
-    bottom: -150px;
-    left: -100px;
-    animation: float 8s ease-in-out infinite reverse;
 }
 
 .bg-accent {
@@ -147,6 +120,7 @@
 .login-form {
     display: flex;
     flex-direction: column;
+    align-items: center;
     gap: 1.8rem;
     margin-bottom: 2.5rem;
 }
@@ -302,6 +276,7 @@
 }
 
 .btn-login {
+    width: 100%;
     padding: 1.15rem 1.5rem;
     background: linear-gradient(135deg, #3b7dd9 0%, #2c5aa0 100%);
     color: white;
@@ -514,6 +489,7 @@
     }
 
     .btn-login {
+        width: 100%;
         font-size: 0.9rem;
     }
 }
