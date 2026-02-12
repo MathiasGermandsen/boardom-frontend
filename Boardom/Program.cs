@@ -6,12 +6,21 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.ResponseCompression;
+using System.Net;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
+builder.Services.AddResponseCompression(options =>
+{
+    options.EnableForHttps = true;
+    options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
+        new[] { "text/css", "application/javascript", "text/javascript" });
+});
 
 
 builder.Services.AddControllersWithViews();
@@ -60,12 +69,12 @@ builder.Services.AddAuth0WebAppAuthentication(options =>
     options.ClientId = auth0ClientId;
     options.ClientSecret = auth0ClientSecret;
 
-     options.OpenIdConnectEvents = new OpenIdConnectEvents
+    options.OpenIdConnectEvents = new OpenIdConnectEvents
     {
         OnRemoteFailure = context =>
         {
-            if (context.Failure.Message != null && 
-            context.Failure.Message.Contains ("access_denied", StringComparison.OrdinalIgnoreCase))
+            if (context.Failure.Message != null &&
+            context.Failure.Message.Contains("access_denied", StringComparison.OrdinalIgnoreCase))
             {
                 context.Response.Redirect("/");
                 context.HandleResponse();
@@ -79,11 +88,18 @@ builder.Services.AddHealthChecks();
 
 var app = builder.Build();
 
+// Response compression must be first
+app.UseResponseCompression();
+
 // Support reverse proxy (Cloudflare Tunnel)
-app.UseForwardedHeaders(new ForwardedHeadersOptions
+// Clear default limits so headers from any proxy are accepted
+var forwardedHeadersOptions = new ForwardedHeadersOptions
 {
     ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedHost
-});
+};
+forwardedHeadersOptions.KnownNetworks.Clear();
+forwardedHeadersOptions.KnownProxies.Clear();
+app.UseForwardedHeaders(forwardedHeadersOptions);
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
@@ -92,7 +108,7 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-if(app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment())
 {
     app.UseHttpsRedirection();
 }
@@ -106,7 +122,14 @@ app.Use(async (context, next) =>
 }
 );
 
-app.UseStaticFiles();
+app.UseStaticFiles(new StaticFileOptions
+{
+    OnPrepareResponse = ctx =>
+    {
+        // Cache static files for 1 hour, but allow revalidation
+        ctx.Context.Response.Headers.Append("Cache-Control", "public, max-age=3600, must-revalidate");
+    }
+});
 
 
 app.UseRouting();
