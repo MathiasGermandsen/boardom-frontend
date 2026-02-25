@@ -1,6 +1,11 @@
 ﻿@page "/home"
 @using Microsoft.AspNetCore.Components.Authorization;
 @using Microsoft.AspNetCore.Authorization;
+@using Boardom.Models
+@using Boardom.Services
+@implements IDisposable
+@inject PendingDeviceStore PendingDeviceStore
+@inject NavigationManager NavigationManager
 @attribute [Authorize]
 
 <PageTitle>BOARDOM - Household Monitoring System</PageTitle>
@@ -202,5 +207,132 @@
 		</div>
 	</div>
 </div>
+
+<button type="button" class="fab-add-device" @onclick="OpenAddDevice" aria-label="Add device">+</button>
+
+@if (showAddDevice)
+{
+    <div class="add-device-overlay">
+        <div class="add-device-modal" @onclick:stopPropagation="true">
+            <h1 class="add-device-title">ADD DEVICE</h1>
+
+            @if (string.IsNullOrWhiteSpace(pendingDeviceId))
+            {
+                <p class="add-device-waiting">Waiting for device...</p>
+
+                <div class="add-device-actions">
+                    <button class="btn btn-secondary" @onclick="CancelAddDevice">Cancel</button>
+                </div>
+            }
+            else
+            {
+                <p class="add-device-found">
+                    Device connected: <span class="device-id">@pendingDeviceId</span>
+                </p>
+
+                <div class="add-device-form">
+                    <label>Friendly name</label>
+                    <input class="form-control" @bind="friendlyName" @bind:event="oninput" />
+                </div>
+
+                @if (!string.IsNullOrWhiteSpace(errorMessage))
+                {
+                    <div class="add-device-error">@errorMessage</div>
+                }
+
+                <div class="add-device-actions">
+                    <button class="btn btn-secondary" @onclick="CancelAddDevice" disabled="@isSubmitting">Cancel</button>
+                    <button class="btn btn-primary" @onclick="SubmitAddDevice" disabled="@(!CanSubmit)">Add</button>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    private bool showAddDevice;
+    private string? pendingDeviceId;
+    private string friendlyName = "";
+    private string? errorMessage;
+    private bool isSubmitting;
+    private HttpClient? http;
+
+    protected override void OnInitialized()
+    {
+        http = new HttpClient { BaseAddress = new Uri(NavigationManager.BaseUri) };
+        PendingDeviceStore.Changed += HandlePendingChanged;
+        pendingDeviceId = PendingDeviceStore.PendingDeviceId;
+    }
+
+    private void HandlePendingChanged()
+    {
+        _ = InvokeAsync(() =>
+        {
+            pendingDeviceId = PendingDeviceStore.PendingDeviceId;
+            StateHasChanged();
+        });
+    }
+
+    private void OpenAddDevice()
+    {
+        showAddDevice = true;
+        errorMessage = null;
+        pendingDeviceId = PendingDeviceStore.PendingDeviceId;
+    }
+
+    private void CancelAddDevice()
+    {
+        showAddDevice = false;
+        errorMessage = null;
+        friendlyName = "";
+    }
+
+    private bool CanSubmit =>
+        !isSubmitting &&
+        !string.IsNullOrWhiteSpace(pendingDeviceId) &&
+        !string.IsNullOrWhiteSpace(friendlyName);
+
+    private async Task SubmitAddDevice()
+    {
+        if (!CanSubmit || http is null) return;
+
+        isSubmitting = true;
+        errorMessage = null;
+
+        try
+        {
+            var request = new DeviceAddRequest
+            {
+                DeviceId = pendingDeviceId!,
+                FriendlyName = friendlyName.Trim()
+            };
+
+            using var response = await http.PostAsJsonAsync("api/addDevice", request);
+            if (!response.IsSuccessStatusCode)
+            {
+                var msg = await response.Content.ReadAsStringAsync();
+                errorMessage = string.IsNullOrWhiteSpace(msg) ? "Failed to add device." : msg;
+                return;
+            }
+
+            showAddDevice = false;
+            friendlyName = "";
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+
+    public void Dispose()
+    {
+        PendingDeviceStore.Changed -= HandlePendingChanged;
+        http?.Dispose();
+    }
+}
 
 @* Styling is in wwwroot/app.css *@

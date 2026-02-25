@@ -507,3 +507,103 @@ h1:focus {
     color: white !important;
     text-decoration: none;
 }
+
+.fab-add-device {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    border: none;
+    background: #3b7dd9;
+    color: #ffffff;
+    font-size: 2rem;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.35);
+    z-index: 900;
+}
+
+.fab-add-device:hover {
+    background: #2c5aa0;
+}
+
+.add-device-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 1.5rem;
+}
+
+.add-device-modal {
+    width: 100%;
+    max-width: 520px;
+    background: #1a2332;
+    border: 1px solid rgba(59, 125, 217, 0.2);
+    border-radius: 10px;
+    padding: 2rem;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+    color: #e8eef7;
+}
+
+.add-device-title {
+    margin: 0 0 1rem 0;
+    text-align: center;
+    letter-spacing: 1px;
+    font-weight: 700;
+}
+
+.add-device-waiting,
+.add-device-found {
+    text-align: center;
+    color: #b0b9c3;
+    margin: 0 0 1.25rem 0;
+}
+
+.add-device-found .device-id {
+    color: #3b7dd9;
+    font-weight: 600;
+}
+
+.add-device-form label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #7a8fa3;
+    font-size: 0.85rem;
+}
+
+.add-device-form input {
+    background: rgba(232, 238, 247, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #e8eef7;
+}
+
+.add-device-form input:focus {
+    background: rgba(232, 238, 247, 0.08);
+    border-color: rgba(59, 125, 217, 0.6);
+    color: #e8eef7;
+    box-shadow: none;
+}
+
+.add-device-actions {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-end;
+    margin-top: 1.25rem;
+}
+
+.add-device-error {
+    margin-top: 1rem;
+    color: #fecaca;
+    background: rgba(153, 27, 27, 0.12);
+    border: 1px solid rgba(153, 27, 27, 0.35);
+    padding: 0.75rem;
+    border-radius: 6px;
+}
