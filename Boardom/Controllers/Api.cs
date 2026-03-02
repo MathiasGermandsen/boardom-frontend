@@ -79,7 +79,7 @@ public async Task<IActionResult> AddDevice([FromBody] DeviceAddRequest request)
         return Ok(new { success = true});
       }
 
-      HttpResponseMessage postResponse = await _httpClient.PostAsJsonAsync("Device/addDevice", request);
+      HttpResponseMessage postResponse = await _httpClient.PostAsJsonAsync("Device/add", request);
 
       string result = await postResponse.Content.ReadAsStringAsync();
 
