@@ -18,8 +18,7 @@ public class DeviceController : ControllerBase
 
     public DeviceController(IHttpClientFactory httpClientFactory, PendingDeviceStore pendingDeviceStore)
     {
-        //_httpClient = httpClientFactory.CreateClient("DatabaseApi");
-        _httpClient = httpClientFactory.CreateClient("boardom-dashboard-api.mercantec.tech");
+        _httpClient = httpClientFactory.CreateClient("DatabaseApi");
         _pendingDeviceStore = pendingDeviceStore;
     }
 
