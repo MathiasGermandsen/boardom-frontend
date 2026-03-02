@@ -3,7 +3,9 @@ using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 using Boardom.Components.Pages;
 using Microsoft.AspNetCore.Mvc;
-
+using Boardom.Models;
+using Boardom.Services;
+using Microsoft.AspNetCore.Authorization;
 
 [ApiController]
 [Route("api")]
@@ -11,25 +13,36 @@ using Microsoft.AspNetCore.Mvc;
 public class DeviceController : ControllerBase
 {
     private readonly HttpClient _httpClient;
+    private readonly PendingDeviceStore _pendingDeviceStore;
 
-    public DeviceController(IHttpClientFactory httpClientFactory)
+    public DeviceController(IHttpClientFactory httpClientFactory, PendingDeviceStore pendingDeviceStore)
     {
         _httpClient = httpClientFactory.CreateClient("DatabaseApi");
+        _pendingDeviceStore = pendingDeviceStore;
     }
 
-[HttpPost("heartbeat")]
-  public async Task <IActionResult> Heartbeat([FromBody] DeviceIdBody request)
+    [AllowAnonymous]
+    [HttpPost("connect")]
+    public IActionResult Connect([FromBody] DeviceConnectRequest request)
   {
     if (request == null || string.IsNullOrWhiteSpace(request.DeviceId))
-    {
+    return BadRequest(new { success = false, message = "Device ID is required"});
+
+    _pendingDeviceStore.SetConnected(request.DeviceId);
+    return Ok(new { success = true });
+  }
+
+[HttpPost("heartbeat")]
+  public async Task <IActionResult> Heartbeat([FromBody] DeviceConnectRequest request)
+  {
+    if (request == null || string.IsNullOrWhiteSpace(request.DeviceId))
       return BadRequest(new { success = false, message = "Device ID is required" });
-    }
+
+
     try
         {
-
             string encodedDeviceId = Uri.EscapeDataString(request.DeviceId);
             using HttpResponseMessage response = await _httpClient.GetAsync($"Device/{encodedDeviceId}");
-
             return Ok(new {success = response.IsSuccessStatusCode });
         }
         catch (Exception ex)
@@ -39,26 +52,33 @@ public class DeviceController : ControllerBase
 }
 
 [HttpPost("addDevice")]
-public async Task<IActionResult> AddDevice([FromBody] DeviceIdBody request)
+public async Task<IActionResult> AddDevice([FromBody] DeviceAddRequest request)
   {
     if (request == null || string.IsNullOrWhiteSpace(request.DeviceId))
     {
       return BadRequest(new { success = false, message = "Device ID is required"});
     }
+
+    if (string.IsNullOrWhiteSpace(request.FriendlyName))
+    {
+      return BadRequest(new { success = false, message = "Friendly name is required "});
+    }
+
     try
     {
       string encodedDeviceId = Uri.EscapeDataString(request.DeviceId);
-      using HttpResponseMessage getResponse = await _httpClient.GetAsync($"Device/{encodedDeviceId}");
 
+      using HttpResponseMessage getResponse = await _httpClient.GetAsync($"Device/{encodedDeviceId}");
       if (getResponse.IsSuccessStatusCode)
       {
+        _pendingDeviceStore.Clear();
         return Ok(new { success = true});
       }
 
       HttpResponseMessage postResponse = await _httpClient.PostAsJsonAsync("Device/addDevice", request);
-
       if (postResponse.IsSuccessStatusCode)
       {
+        _pendingDeviceStore.Clear();
         string result = await postResponse.Content.ReadAsStringAsync();
         return Ok(new { success = true, data = result });
       }
@@ -72,11 +92,4 @@ public async Task<IActionResult> AddDevice([FromBody] DeviceIdBody request)
       return StatusCode(500, new { success = false, ex.Message});
     }
   }
-
-
-public class DeviceIdBody
-{
-  public string DeviceId { get; set; } = string.Empty; 
-}
-
 }
