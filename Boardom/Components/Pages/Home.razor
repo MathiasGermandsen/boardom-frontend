@@ -6,6 +6,8 @@
 @implements IDisposable
 @inject PendingDeviceStore PendingDeviceStore
 @inject NavigationManager NavigationManager
+@inject DeviceFunctions DeviceFunctions
+
 @attribute [Authorize]
 
 <PageTitle>BOARDOM - Household Monitoring System</PageTitle>
@@ -301,19 +303,22 @@
 
         try
         {
-            var request = new DeviceAddRequest
+            DeviceAddRequest? request = new DeviceAddRequest
             {
                 DeviceId = pendingDeviceId!,
                 FriendlyName = friendlyName.Trim()
             };
 
-            using var response = await http.PostAsJsonAsync("api/addDevice", request);
-            if (!response.IsSuccessStatusCode)
-            {
-                var msg = await response.Content.ReadAsStringAsync();
-                errorMessage = string.IsNullOrWhiteSpace(msg) ? "Failed to add device." : msg;
-                return;
-            }
+			var (success, message) = await DeviceFunctions.AddDeviceAsync(request);
+
+			if (success) 
+			{
+				showAddDevice = false;
+				friendlyName = "";
+			} 
+			else {
+				errorMessage = message;
+			}
 
             showAddDevice = false;
             friendlyName = "";
