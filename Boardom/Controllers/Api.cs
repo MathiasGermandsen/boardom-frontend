@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Boardom.Models;
 using Boardom.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Razor.TagHelpers;
 
 [ApiController]
 [Route("api")]
@@ -17,13 +18,14 @@ public class DeviceController : ControllerBase
 
     public DeviceController(IHttpClientFactory httpClientFactory, PendingDeviceStore pendingDeviceStore)
     {
-        _httpClient = httpClientFactory.CreateClient("DatabaseApi");
+        //_httpClient = httpClientFactory.CreateClient("DatabaseApi");
+        _httpClient = httpClientFactory.CreateClient("boardom-dashboard-api.mercantec.tech");
         _pendingDeviceStore = pendingDeviceStore;
     }
 
-    [AllowAnonymous]
-    [HttpPost("connect")]
-    public IActionResult Connect([FromBody] DeviceConnectRequest request)
+[AllowAnonymous]
+[HttpPost("connect")]
+public IActionResult Connect([FromBody] DeviceConnectRequest request)
   {
     if (request == null || string.IsNullOrWhiteSpace(request.DeviceId))
     return BadRequest(new { success = false, message = "Device ID is required"});
@@ -38,16 +40,19 @@ public class DeviceController : ControllerBase
     if (request == null || string.IsNullOrWhiteSpace(request.DeviceId))
       return BadRequest(new { success = false, message = "Device ID is required" });
 
-
     try
         {
             string encodedDeviceId = Uri.EscapeDataString(request.DeviceId);
             using HttpResponseMessage response = await _httpClient.GetAsync($"Device/{encodedDeviceId}");
-            return Ok(new {success = response.IsSuccessStatusCode });
+
+            if (response.IsSuccessStatusCode)
+              return Ok(new {success = true });            
+
+              return StatusCode((int)response.StatusCode, new {success = false, message = "Device not found"});
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new { success = false, ex.Message});
+            return StatusCode(500, new {success = false, ex.Message});
         }
 }
 
@@ -76,10 +81,12 @@ public async Task<IActionResult> AddDevice([FromBody] DeviceAddRequest request)
       }
 
       HttpResponseMessage postResponse = await _httpClient.PostAsJsonAsync("Device/addDevice", request);
+
+      string result = await postResponse.Content.ReadAsStringAsync();
+
       if (postResponse.IsSuccessStatusCode)
       {
         _pendingDeviceStore.Clear();
-        string result = await postResponse.Content.ReadAsStringAsync();
         return Ok(new { success = true, data = result });
       }
       else
