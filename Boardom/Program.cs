@@ -17,6 +17,7 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 builder.Services.AddSingleton<PendingDeviceStore>();
+builder.Services.AddScoped<Boardom.Services.DeviceFunctions>();
 
 builder.Services.AddResponseCompression(options =>
 {

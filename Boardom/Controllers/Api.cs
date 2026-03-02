@@ -55,47 +55,4 @@ public IActionResult Connect([FromBody] DeviceConnectRequest request)
         }
 }
 
-[HttpPost("addDevice")]
-public async Task<IActionResult> AddDevice([FromBody] DeviceAddRequest request)
-  {
-    if (request == null || string.IsNullOrWhiteSpace(request.DeviceId))
-    {
-      return BadRequest(new { success = false, message = "Device ID is required"});
-    }
-
-    if (string.IsNullOrWhiteSpace(request.FriendlyName))
-    {
-      return BadRequest(new { success = false, message = "Friendly name is required "});
-    }
-
-    try
-    {
-      string encodedDeviceId = Uri.EscapeDataString(request.DeviceId);
-
-      using HttpResponseMessage getResponse = await _httpClient.GetAsync($"Device/{encodedDeviceId}");
-      if (getResponse.IsSuccessStatusCode)
-      {
-        _pendingDeviceStore.Clear();
-        return Ok(new { success = true});
-      }
-
-      HttpResponseMessage postResponse = await _httpClient.PostAsJsonAsync("Device/add", request);
-
-      string result = await postResponse.Content.ReadAsStringAsync();
-
-      if (postResponse.IsSuccessStatusCode)
-      {
-        _pendingDeviceStore.Clear();
-        return Ok(new { success = true, data = result });
-      }
-      else
-      {
-        return StatusCode((int)postResponse.StatusCode, new { success = false, message = "Failed to add device" });
-      }
-    }
-    catch (Exception ex)
-    {
-      return StatusCode(500, new { success = false, ex.Message});
-    }
-  }
 }

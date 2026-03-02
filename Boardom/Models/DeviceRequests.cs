@@ -13,6 +13,6 @@ public sealed class DeviceAddRequest
     [JsonPropertyName("deviceId")]
     public string DeviceId { get; set; } = string.Empty;
 
-    [JsonPropertyName("friendly_name")]
+    [JsonPropertyName("friendlyName")]
     public string FriendlyName { get; set; } = string.Empty;
 }
