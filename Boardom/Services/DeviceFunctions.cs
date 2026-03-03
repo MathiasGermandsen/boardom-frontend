@@ -127,6 +127,8 @@ public sealed class DeviceFunctions
       _logger.LogError(ex, "[DEBUG] Data/sensorData/{DeviceId} failed", deviceId);
       return null;
     }
+    
+  }
 
     public async Task <List<DeviceInfo>> GetDevicesAsync()
     {
@@ -167,4 +169,4 @@ public sealed class DeviceFunctions
         return (false, "failed to update device delete state");
     }
   }
-}
+

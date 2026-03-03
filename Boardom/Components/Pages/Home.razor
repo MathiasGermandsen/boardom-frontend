@@ -1,4 +1,4 @@
-@page "/home"
+﻿@page "/home"
 @using Microsoft.AspNetCore.Components.Authorization;
 @using Microsoft.AspNetCore.Authorization;
 @using Boardom.Models
@@ -193,7 +193,6 @@ else
 }
 
 @code {
-    // ...existing code...
     private bool showAddDevice;
     private string? pendingDeviceId;
     private string friendlyName = "";
@@ -209,123 +208,96 @@ else
     private string editFriendlyName = "";
     private string? manageErrorMessage;
 
-    protected override void OnInitialized()
+    private bool isLoading = true;
+    private List<DeviceGroup> groups = new();
+    private int activeDeviceCount;
+    private double? averageTemperature;
+
+    private static readonly (string Icon, string Label, Func<SensorReading?, string> Format)[] SensorDefinitions =
+    {
+        ("L", "Light", r => r?.Light is not null ? $"{r.Light:0} lx" : "N/A"),
+        ("T", "Temperature", r => r?.Temperature is not null ? $"{r.Temperature:0.0}°C" : "N/A"),
+        ("H", "Humidity", r => r?.Humidity is not null ? $"{r.Humidity:0}%" : "N/A"),
+        ("P", "Pressure", r => r?.Pressure is not null ? $"{r.Pressure:0.00} kPa" : "N/A"),
+        ("M", "Moisture", r => r?.Moisture is not null ? $"{r.Moisture:0.0}%" : "N/A"),
+    };
+
+    protected override async Task OnInitializedAsync()
     {
         http = new HttpClient { BaseAddress = new Uri(NavigationManager.BaseUri) };
         PendingDeviceStore.Changed += HandlePendingChanged;
         pendingDeviceId = PendingDeviceStore.PendingDeviceId;
+
+        await LoadDashboardDataAsync();
     }
-  private bool showAddDevice;
-  private string? pendingDeviceId;
-  private string friendlyName = "";
-  private string? errorMessage;
-  private bool isSubmitting;
-  private HttpClient? http;
 
-  private bool isLoading = true;
-  private List<DeviceGroup> groups = new();
-  private int activeDeviceCount;
-  private double? averageTemperature;
+    private async Task LoadDashboardDataAsync()
+    {
+        isLoading = true;
 
-  private static readonly (string Icon, string Label, Func<SensorReading?, string> Format)[] SensorDefinitions =
-  {
-    ("L", "Light", r => r?.Light is not null ? $"{r.Light:0} lx" : "N/A"),
-    ("T", "Temperature", r => r?.Temperature is not null ? $"{r.Temperature:0.0}°C" : "N/A"),
-    ("H", "Humidity", r => r?.Humidity is not null ? $"{r.Humidity:0}%" : "N/A"),
-    ("P", "Pressure", r => r?.Pressure is not null ? $"{r.Pressure:0.00} kPa" : "N/A"),
-    ("M", "Moisture", r => r?.Moisture is not null ? $"{r.Moisture:0.0}%" : "N/A"),
-  };
+        var devicesTask = DeviceFunctions.GetAllDevicesAsync();
+        var groupsTask = DeviceFunctions.GetDeviceGroupsAsync();
+        await Task.WhenAll(devicesTask, groupsTask);
 
-  protected override async Task OnInitializedAsync()
-  {
-    http = new HttpClient { BaseAddress = new Uri(NavigationManager.BaseUri) };
-    PendingDeviceStore.Changed += HandlePendingChanged;
-    pendingDeviceId = PendingDeviceStore.PendingDeviceId;
+        var allDevices = devicesTask.Result;
+        groups = groupsTask.Result;
 
-    await LoadDashboardDataAsync();
-  }
+        activeDeviceCount = allDevices.Count(d => d.IsOnline);
 
-  private async Task LoadDashboardDataAsync()
-  {
-    isLoading = true;
+        var allGroupDevices = groups.SelectMany(g => g.Devices).ToList();
+        var sensorTasks = allGroupDevices
+            .Select(async device =>
+            {
+                device.LatestReading = await DeviceFunctions.GetLatestSensorDataAsync(device.DeviceId);
+            });
+        await Task.WhenAll(sensorTasks);
 
-    // Fetch all devices and groups in parallel
-    var devicesTask = DeviceFunctions.GetAllDevicesAsync();
-    var groupsTask = DeviceFunctions.GetDeviceGroupsAsync();
-    await Task.WhenAll(devicesTask, groupsTask);
+        var temps = allGroupDevices
+            .Where(d => d.LatestReading?.Temperature is not null)
+            .Select(d => d.LatestReading!.Temperature!.Value)
+            .ToList();
+        averageTemperature = temps.Count > 0 ? temps.Average() : null;
 
-    var allDevices = devicesTask.Result;
-    groups = groupsTask.Result;
+        isLoading = false;
+    }
 
-    // Count active (online) devices
-    activeDeviceCount = allDevices.Count(d => d.IsOnline);
+    private static string FormatTemp(double? temp)
+        => temp is not null ? $"{temp:0.0}°C" : "--";
 
-    // Fetch latest sensor reading for every device across all groups in parallel
-    var allGroupDevices = groups.SelectMany(g => g.Devices).ToList();
-    var sensorTasks = allGroupDevices
-        .Select(async device =>
+    private void HandlePendingChanged()
+    {
+        _ = InvokeAsync(() =>
         {
-          device.LatestReading = await DeviceFunctions.GetLatestSensorDataAsync(device.DeviceId);
+            pendingDeviceId = PendingDeviceStore.PendingDeviceId;
+            StateHasChanged();
         });
-    await Task.WhenAll(sensorTasks);
+    }
 
-    // Compute average temperature from all readings that have a temperature value
-    var temps = allGroupDevices
-        .Where(d => d.LatestReading?.Temperature is not null)
-        .Select(d => d.LatestReading!.Temperature!.Value)
-        .ToList();
-    averageTemperature = temps.Count > 0 ? temps.Average() : null;
-
-    isLoading = false;
-  }
-
-  private static string FormatTemp(double? temp)
-      => temp is not null ? $"{temp:0.0}°C" : "--";
-
-  private void HandlePendingChanged()
-  {
-    _ = InvokeAsync(() =>
+    private void OpenAddDevice()
     {
-      pendingDeviceId = PendingDeviceStore.PendingDeviceId;
-      StateHasChanged();
-    });
-  }
+        showAddDevice = true;
+        errorMessage = null;
+        pendingDeviceId = PendingDeviceStore.PendingDeviceId;
+    }
 
-  private void OpenAddDevice()
-  {
-    showAddDevice = true;
-    errorMessage = null;
-    pendingDeviceId = PendingDeviceStore.PendingDeviceId;
-  }
-
-  private void CancelAddDevice()
-  {
-    showAddDevice = false;
-    errorMessage = null;
-    friendlyName = "";
-  }
-
-  private bool CanSubmit =>
-      !isSubmitting &&
-      !string.IsNullOrWhiteSpace(pendingDeviceId) &&
-      !string.IsNullOrWhiteSpace(friendlyName);
-
-  private async Task SubmitAddDevice()
-  {
-    if (!CanSubmit || http is null) return;
-
-    isSubmitting = true;
-    errorMessage = null;
-
-    try
+    private void CancelAddDevice()
     {
-      DeviceAddRequest? request = new DeviceAddRequest
-      {
-        DeviceId = pendingDeviceId!,
-        FriendlyName = friendlyName.Trim()
-      };
+        showAddDevice = false;
+        errorMessage = null;
+        friendlyName = "";
+    }
 
-      var (success, message) = await DeviceFunctions.AddDeviceAsync(request);
+    private bool CanSubmit =>
+        !isSubmitting &&
+        !string.IsNullOrWhiteSpace(pendingDeviceId) &&
+        !string.IsNullOrWhiteSpace(friendlyName);
+
+    private async Task SubmitAddDevice()
+    {
+        if (!CanSubmit || http is null) return;
+
+        isSubmitting = true;
+        errorMessage = null;
 
         try
         {
@@ -456,34 +428,8 @@ else
     }
 
     public void Dispose()
-      if (success)
-      {
-        showAddDevice = false;
-        friendlyName = "";
-      }
-      else
-      {
-        errorMessage = message;
-      }
-
-      showAddDevice = false;
-      friendlyName = "";
-    }
-    catch (Exception ex)
     {
-      errorMessage = ex.Message;
+        PendingDeviceStore.Changed -= HandlePendingChanged;
+        http?.Dispose();
     }
-    finally
-    {
-      isSubmitting = false;
-    }
-  }
-
-
-@* Styling is in wwwroot/app.css *@
-  public void Dispose()
-  {
-    PendingDeviceStore.Changed -= HandlePendingChanged;
-    http?.Dispose();
-  }
 }
