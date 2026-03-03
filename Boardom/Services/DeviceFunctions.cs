@@ -41,4 +41,43 @@ public sealed class DeviceFunctions
 
         return (false, "Failed to add device");
     }
+
+    public async Task <List<DeviceInfo>> GetDevicesAsync()
+    {
+        using HttpResponseMessage response = await _httpClient.GetAsync("Device");
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<List<DeviceInfo>>() ?? new();
+    }
+
+    public async Task<(bool success, string Message)> EditDeviceAsync(DeviceEditRequest request)
+    {
+        if (request == null || string.IsNullOrWhiteSpace(request.DeviceId))
+            return (false, "Device ID is required");
+
+        if (string.IsNullOrWhiteSpace(request.FriendlyName))
+            return (false, "Friendly name is required"); 
+
+        using HttpResponseMessage response = await _httpClient.PutAsJsonAsync("Device/edit", request);
+        string result = await response.Content.ReadAsStringAsync();
+
+        if (response.IsSuccessStatusCode)
+            return (true, result);
+
+        return (false, "Failed to edit device");
+    }
+
+    public async Task<(bool Success, string Message)> SetDeviceActiveAsync(DeviceDeleteRequest request)
+    {
+        if (request == null || string.IsNullOrWhiteSpace(request.DeviceId))
+            return (false, "Device ID is required");
+        
+        string encodedDeviceId = Uri.EscapeDataString(request.DeviceId);
+        using HttpResponseMessage response = await _httpClient.PostAsJsonAsync($"Device/delete/{encodedDeviceId}", new{IsActive = request.IsActive});
+        string result = await response.Content.ReadAsStringAsync();
+
+        if (response.IsSuccessStatusCode)
+            return (true, result);
+
+        return (false, "failed to update device delete state");
+    }
 }

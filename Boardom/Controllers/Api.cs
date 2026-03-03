@@ -7,6 +7,7 @@ using Boardom.Models;
 using Boardom.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Razor.TagHelpers;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 [ApiController]
 [Route("api")]
@@ -53,6 +54,5 @@ public IActionResult Connect([FromBody] DeviceConnectRequest request)
         {
             return StatusCode(500, new {success = false, ex.Message});
         }
-}
-
+  }
 }
