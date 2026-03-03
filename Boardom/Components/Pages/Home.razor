@@ -88,6 +88,7 @@ else
 }
 
 <button type="button" class="fab-add-device" @onclick="OpenAddDevice" aria-label="Add device">+</button>
+<button type="button" class="fab-manage-devices" @onclick="OpenManageDevices" aria-label="Manage devices">⚙</button>
 
 @if (showAddDevice)
 {
@@ -128,7 +129,92 @@ else
   </div>
 }
 
+@if (showManageDevices)
+{
+    <div class="add-device-overlay">
+        <div class="add-device-modal" @onclick:stopPropagation="true">
+            <h1 class="add-device-title">MANAGE DEVICES</h1>
+
+            @if (isLoadingDevices)
+            {
+                <p class="add-device-waiting">Loading devices...</p>
+            }
+            else if (devices == null || !devices.Any())
+            {
+                <p class="add-device-waiting">No devices found.</p>
+            }
+            else
+            {
+                <div class="manage-device-list">
+                    @foreach (var device in devices)
+                    {
+                        <div class="manage-device-item">
+                            @if (editingDeviceId == device.DeviceId)
+                            {
+                                <div class="manage-device-edit">
+                                    <input class="form-control" @bind="editFriendlyName" @bind:event="oninput" />
+                                    <div class="manage-device-actions">
+                                        <button class="btn btn-primary" @onclick="() => SubmitEditDevice(device.DeviceId)" disabled="@(isSubmitting || string.IsNullOrWhiteSpace(editFriendlyName))">Save</button>
+                                        <button class="btn btn-secondary" @onclick="CancelEdit" disabled="@isSubmitting">Cancel</button>
+                                    </div>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="manage-device-info">
+                                    <span class="device-friendly-name">@device.FriendlyName</span>
+                                    <span class="device-id-small">@device.DeviceId</span>
+                                    <span class="device-state @(device.IsActive ? "online" : "offline")">
+                                        ● @(device.IsActive ? "Active" : "Inactive")
+                                    </span>
+                                </div>
+                                <div class="manage-device-actions">
+                                    <button class="btn btn-secondary" @onclick="() => StartEditDevice(device)" disabled="@isSubmitting">Edit</button>
+                                    <button class="btn btn-danger" @onclick="() => ToggleDeviceActive(device)" disabled="@isSubmitting">
+                                        @(device.IsActive ? "Deactivate" : "Activate")
+                                    </button>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(manageErrorMessage))
+            {
+                <div class="add-device-error">@manageErrorMessage</div>
+            }
+
+            <div class="add-device-actions">
+                <button class="btn btn-secondary" @onclick="CloseManageDevices">Close</button>
+            </div>
+        </div>
+    </div>
+}
+
 @code {
+    // ...existing code...
+    private bool showAddDevice;
+    private string? pendingDeviceId;
+    private string friendlyName = "";
+    private string? errorMessage;
+    private bool isSubmitting;
+    private HttpClient? http;
+
+    // Manage devices
+    private bool showManageDevices;
+    private bool isLoadingDevices;
+    private List<DeviceInfo>? devices;
+    private string? editingDeviceId;
+    private string editFriendlyName = "";
+    private string? manageErrorMessage;
+
+    protected override void OnInitialized()
+    {
+        http = new HttpClient { BaseAddress = new Uri(NavigationManager.BaseUri) };
+        PendingDeviceStore.Changed += HandlePendingChanged;
+        pendingDeviceId = PendingDeviceStore.PendingDeviceId;
+    }
   private bool showAddDevice;
   private string? pendingDeviceId;
   private string friendlyName = "";
@@ -241,6 +327,135 @@ else
 
       var (success, message) = await DeviceFunctions.AddDeviceAsync(request);
 
+        try
+        {
+            var request = new DeviceAddRequest
+            {
+                DeviceId = pendingDeviceId!,
+                FriendlyName = friendlyName.Trim()
+            };
+
+            var (success, message) = await DeviceFunctions.AddDeviceAsync(request);
+
+            if (success)
+            {
+                showAddDevice = false;
+                friendlyName = "";
+            }
+            else
+            {
+                errorMessage = message;
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+
+    private async Task OpenManageDevices()
+    {
+        showManageDevices = true;
+        manageErrorMessage = null;
+        editingDeviceId = null;
+        await LoadDevices();
+    }
+
+    private void CloseManageDevices()
+    {
+        showManageDevices = false;
+        manageErrorMessage = null;
+        editingDeviceId = null;
+        editFriendlyName = "";
+    }
+
+    private async Task LoadDevices()
+    {
+        isLoadingDevices = true;
+        try
+        {
+            devices = await DeviceFunctions.GetDevicesAsync();
+        }
+        catch (Exception ex)
+        {
+            manageErrorMessage = ex.Message;
+        }
+        finally
+        {
+            isLoadingDevices = false;
+        }
+    }
+
+    private void StartEditDevice(DeviceInfo device)
+    {
+        editingDeviceId = device.DeviceId;
+        editFriendlyName = device.FriendlyName;
+        manageErrorMessage = null;
+    }
+
+    private void CancelEdit()
+    {
+        editingDeviceId = null;
+        editFriendlyName = "";
+    }
+
+    private async Task SubmitEditDevice(string deviceId)
+    {
+        isSubmitting = true;
+        manageErrorMessage = null;
+        try
+        {
+            var request = new DeviceEditRequest { DeviceId = deviceId, FriendlyName = editFriendlyName.Trim() };
+            var (success, message) = await DeviceFunctions.EditDeviceAsync(request);
+            if (success)
+            {
+                editingDeviceId = null;
+                editFriendlyName = "";
+                await LoadDevices();
+            }
+            else
+            {
+                manageErrorMessage = message;
+            }
+        }
+        catch (Exception ex)
+        {
+            manageErrorMessage = ex.Message;
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+
+    private async Task ToggleDeviceActive(DeviceInfo device)
+    {
+        isSubmitting = true;
+        manageErrorMessage = null;
+        try
+        {
+            var request = new DeviceDeleteRequest { DeviceId = device.DeviceId, IsActive = !device.IsActive };
+            var (success, message) = await DeviceFunctions.SetDeviceActiveAsync(request);
+            if (success)
+                await LoadDevices();
+            else
+                manageErrorMessage = message;
+        }
+        catch (Exception ex)
+        {
+            manageErrorMessage = ex.Message;
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+
+    public void Dispose()
       if (success)
       {
         showAddDevice = false;
@@ -264,6 +479,8 @@ else
     }
   }
 
+
+@* Styling is in wwwroot/app.css *@
   public void Dispose()
   {
     PendingDeviceStore.Changed -= HandlePendingChanged;
