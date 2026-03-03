@@ -1,4 +1,4 @@
-﻿@page "/home"
+@page "/home"
 @using Microsoft.AspNetCore.Components.Authorization;
 @using Microsoft.AspNetCore.Authorization;
 @using Boardom.Models
@@ -12,244 +12,121 @@
 
 <PageTitle>BOARDOM - Household Monitoring System</PageTitle>
 
-<div class="dashboard-container">
-	<div class="dashboard-header">
-		<h1 class="dashboard-title">System Overview</h1>
-		<p class="dashboard-subtitle">Real-time monitoring of household sensor devices</p>
-		<div class="dashboard-stats">
-			<div class="stat-card">
-				<div class="stat-icon">●</div>
-				<span class="stat-label">ACTIVE DEVICES</span>
-				<span class="stat-value">5</span>
-			</div>
-			<div class="stat-card">
-				<div class="stat-icon">●</div>
-				<span class="stat-label">DEVICE GROUPS</span>
-				<span class="stat-value">3</span>
-			</div>
-			<div class="stat-card">
-				<div class="stat-icon">●</div>
-				<span class="stat-label">AVERAGE TEMPERATURE</span>
-				<span class="stat-value">21.1°C</span>
-			</div>
-		</div>
-	</div>
-	<div class="dashboard-groups">
-		<!-- Living Room Group -->
-		<div class="dashboard-group">
-			<div class="group-header">
-				<h2>Living Room</h2>
-				<span class="device-count">2 devices</span>
-			</div>
-			<div class="arduino-list">
-				<div class="arduino-card">
-					<div class="card-header">
-						<h3>Main Sensor</h3>
-						<span class="device-status online">● Online</span>
-					</div>
-					<div class="sensor-data">
-						<div class="sensor-item">
-							<div class="sensor-info">
-								<span class="sensor-icon">L</span>
-								<span class="sensor-label">Light</span>
-							</div>
-							<span class="sensor-value">350 lx</span>
-						</div>
-						<div class="sensor-item">
-							<div class="sensor-info">
-								<span class="sensor-icon">T</span>
-								<span class="sensor-label">Temperature</span>
-							</div>
-							<span class="sensor-value">22.5°C</span>
-						</div>
-						<div class="sensor-item">
-							<div class="sensor-info">
-								<span class="sensor-icon">H</span>
-								<span class="sensor-label">Humidity</span>
-							</div>
-							<span class="sensor-value">45%</span>
-						</div>
-					</div>
-				</div>
-				<div class="arduino-card">
-					<div class="card-header">
-						<h3>Secondary Sensor</h3>
-						<span class="device-status online">● Online</span>
-					</div>
-					<div class="sensor-data">
-						<div class="sensor-item">
-							<div class="sensor-info">
-								<span class="sensor-icon">L</span>
-								<span class="sensor-label">Light</span>
-							</div>
-							<span class="sensor-value">120 lx</span>
-						</div>
-						<div class="sensor-item">
-							<div class="sensor-info">
-								<span class="sensor-icon">T</span>
-								<span class="sensor-label">Temperature</span>
-							</div>
-							<span class="sensor-value">20.1°C</span>
-						</div>
-						<div class="sensor-item">
-							<div class="sensor-info">
-								<span class="sensor-icon">H</span>
-								<span class="sensor-label">Humidity</span>
-							</div>
-							<span class="sensor-value">50%</span>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-		<!-- Bedroom Group -->
-		<div class="dashboard-group">
-			<div class="group-header">
-				<h2>Bedroom</h2>
-				<span class="device-count">1 device</span>
-			</div>
-			<div class="arduino-list">
-				<div class="arduino-card">
-					<div class="card-header">
-						<h3>Climate Sensor</h3>
-						<span class="device-status online">● Online</span>
-					</div>
-					<div class="sensor-data">
-						<div class="sensor-item">
-							<div class="sensor-info">
-								<span class="sensor-icon">L</span>
-								<span class="sensor-label">Light</span>
-							</div>
-							<span class="sensor-value">80 lx</span>
-						</div>
-						<div class="sensor-item">
-							<div class="sensor-info">
-								<span class="sensor-icon">T</span>
-								<span class="sensor-label">Temperature</span>
-							</div>
-							<span class="sensor-value">19.8°C</span>
-						</div>
-						<div class="sensor-item">
-							<div class="sensor-info">
-								<span class="sensor-icon">H</span>
-								<span class="sensor-label">Humidity</span>
-							</div>
-							<span class="sensor-value">55%</span>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-		<!-- Kitchen Group -->
-		<div class="dashboard-group">
-			<div class="group-header">
-				<h2>Kitchen</h2>
-				<span class="device-count">2 devices</span>
-			</div>
-			<div class="arduino-list">
-				<div class="arduino-card">
-					<div class="card-header">
-						<h3>Ambient Sensor</h3>
-						<span class="device-status online">● Online</span>
-					</div>
-					<div class="sensor-data">
-						<div class="sensor-item">
-							<div class="sensor-info">
-								<span class="sensor-icon">L</span>
-								<span class="sensor-label">Light</span>
-							</div>
-							<span class="sensor-value">450 lx</span>
-						</div>
-						<div class="sensor-item">
-							<div class="sensor-info">
-								<span class="sensor-icon">T</span>
-								<span class="sensor-label">Temperature</span>
-							</div>
-							<span class="sensor-value">23.2°C</span>
-						</div>
-						<div class="sensor-item">
-							<div class="sensor-info">
-								<span class="sensor-icon">H</span>
-								<span class="sensor-label">Humidity</span>
-							</div>
-							<span class="sensor-value">42%</span>
-						</div>
-					</div>
-				</div>
-				<div class="arduino-card">
-					<div class="card-header">
-						<h3>Ventilation Monitor</h3>
-						<span class="device-status offline">● Offline</span>
-					</div>
-					<div class="sensor-data">
-						<div class="sensor-item disabled">
-							<div class="sensor-info">
-								<span class="sensor-icon">L</span>
-								<span class="sensor-label">Light</span>
-							</div>
-							<span class="sensor-value">N/A</span>
-						</div>
-						<div class="sensor-item disabled">
-							<div class="sensor-info">
-								<span class="sensor-icon">T</span>
-								<span class="sensor-label">Temperature</span>
-							</div>
-							<span class="sensor-value">N/A</span>
-						</div>
-						<div class="sensor-item disabled">
-							<div class="sensor-info">
-								<span class="sensor-icon">H</span>
-								<span class="sensor-label">Humidity</span>
-							</div>
-							<span class="sensor-value">N/A</span>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
-</div>
+@if (isLoading)
+{
+  <div style="text-align:center;padding:5rem;color:#e8eef7;">Loading dashboard data…</div>
+}
+else
+{
+  <div class="dashboard-container">
+    <div class="dashboard-header">
+      <h1 class="dashboard-title">System Overview</h1>
+      <p class="dashboard-subtitle">Real-time monitoring of household sensor devices</p>
+      <div class="dashboard-stats">
+        <div class="stat-card">
+          <div class="stat-icon">●</div>
+          <span class="stat-label">ACTIVE DEVICES</span>
+          <span class="stat-value">@activeDeviceCount</span>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">●</div>
+          <span class="stat-label">DEVICE GROUPS</span>
+          <span class="stat-value">@groups.Count</span>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">●</div>
+          <span class="stat-label">AVERAGE TEMPERATURE</span>
+          <span class="stat-value">@FormatTemp(averageTemperature)</span>
+        </div>
+      </div>
+    </div>
+    <div class="dashboard-groups">
+      @foreach (var group in groups)
+      {
+        <div class="dashboard-group">
+          <div class="group-header">
+            <h2>@group.Name</h2>
+            <span class="device-count">@group.Devices.Count device@(group.Devices.Count != 1 ? "s" : "")</span>
+          </div>
+          <div class="arduino-list">
+            @foreach (var device in group.Devices)
+            {
+              <div class="arduino-card">
+                <div class="card-header">
+                  <h3>@device.Name</h3>
+                  @if (device.IsOnline)
+                  {
+                    <span class="device-status online">● Online</span>
+                  }
+                  else
+                  {
+                    <span class="device-status offline">● Offline</span>
+                  }
+                </div>
+                <div class="sensor-data">
+                  @{
+                    var disabled = !device.IsOnline || device.LatestReading is null;
+                  }
+                  @foreach (var sensor in SensorDefinitions)
+                  {
+                    <div class="sensor-item @(disabled ? "disabled" : "")">
+                      <div class="sensor-info">
+                        <span class="sensor-icon">@sensor.Icon</span>
+                        <span class="sensor-label">@sensor.Label</span>
+                      </div>
+                      <span class="sensor-value">@sensor.Format(device.LatestReading)</span>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+}
 
 <button type="button" class="fab-add-device" @onclick="OpenAddDevice" aria-label="Add device">+</button>
 <button type="button" class="fab-manage-devices" @onclick="OpenManageDevices" aria-label="Manage devices">⚙</button>
 
 @if (showAddDevice)
 {
-    <div class="add-device-overlay">
-        <div class="add-device-modal" @onclick:stopPropagation="true">
-            <h1 class="add-device-title">ADD DEVICE</h1>
+  <div class="add-device-overlay">
+    <div class="add-device-modal" @onclick:stopPropagation="true">
+      <h1 class="add-device-title">ADD DEVICE</h1>
 
-            @if (string.IsNullOrWhiteSpace(pendingDeviceId))
-            {
-                <p class="add-device-waiting">Waiting for device...</p>
+      @if (string.IsNullOrWhiteSpace(pendingDeviceId))
+      {
+        <p class="add-device-waiting">Waiting for device...</p>
 
-                <div class="add-device-actions">
-                    <button class="btn btn-secondary" @onclick="CancelAddDevice">Cancel</button>
-                </div>
-            }
-            else
-            {
-                <p class="add-device-found">
-                    Device connected: <span class="device-id">@pendingDeviceId</span>
-                </p>
-
-                <div class="add-device-form">
-                    <label>Friendly name</label>
-                    <input class="form-control" @bind="friendlyName" @bind:event="oninput" />
-                </div>
-
-                @if (!string.IsNullOrWhiteSpace(errorMessage))
-                {
-                    <div class="add-device-error">@errorMessage</div>
-                }
-
-                <div class="add-device-actions">
-                    <button class="btn btn-secondary" @onclick="CancelAddDevice" disabled="@isSubmitting">Cancel</button>
-                    <button class="btn btn-primary" @onclick="SubmitAddDevice" disabled="@(!CanSubmit)">Add</button>
-                </div>
-            }
+        <div class="add-device-actions">
+          <button class="btn btn-secondary" @onclick="CancelAddDevice">Cancel</button>
         </div>
+      }
+      else
+      {
+        <p class="add-device-found">
+          Device connected: <span class="device-id">@pendingDeviceId</span>
+        </p>
+
+        <div class="add-device-form">
+          <label>Friendly name</label>
+          <input class="form-control" @bind="friendlyName" @bind:event="oninput" />
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(errorMessage))
+        {
+          <div class="add-device-error">@errorMessage</div>
+        }
+
+        <div class="add-device-actions">
+          <button class="btn btn-secondary" @onclick="CancelAddDevice" disabled="@isSubmitting">Cancel</button>
+          <button class="btn btn-primary" @onclick="SubmitAddDevice" disabled="@(!CanSubmit)">Add</button>
+        </div>
+      }
     </div>
+  </div>
 }
 
 @if (showManageDevices)
@@ -338,41 +215,117 @@
         PendingDeviceStore.Changed += HandlePendingChanged;
         pendingDeviceId = PendingDeviceStore.PendingDeviceId;
     }
+  private bool showAddDevice;
+  private string? pendingDeviceId;
+  private string friendlyName = "";
+  private string? errorMessage;
+  private bool isSubmitting;
+  private HttpClient? http;
 
-    private void HandlePendingChanged()
-    {
-        _ = InvokeAsync(() =>
+  private bool isLoading = true;
+  private List<DeviceGroup> groups = new();
+  private int activeDeviceCount;
+  private double? averageTemperature;
+
+  private static readonly (string Icon, string Label, Func<SensorReading?, string> Format)[] SensorDefinitions =
+  {
+    ("L", "Light", r => r?.Light is not null ? $"{r.Light:0} lx" : "N/A"),
+    ("T", "Temperature", r => r?.Temperature is not null ? $"{r.Temperature:0.0}°C" : "N/A"),
+    ("H", "Humidity", r => r?.Humidity is not null ? $"{r.Humidity:0}%" : "N/A"),
+    ("P", "Pressure", r => r?.Pressure is not null ? $"{r.Pressure:0.00} kPa" : "N/A"),
+    ("M", "Moisture", r => r?.Moisture is not null ? $"{r.Moisture:0.0}%" : "N/A"),
+  };
+
+  protected override async Task OnInitializedAsync()
+  {
+    http = new HttpClient { BaseAddress = new Uri(NavigationManager.BaseUri) };
+    PendingDeviceStore.Changed += HandlePendingChanged;
+    pendingDeviceId = PendingDeviceStore.PendingDeviceId;
+
+    await LoadDashboardDataAsync();
+  }
+
+  private async Task LoadDashboardDataAsync()
+  {
+    isLoading = true;
+
+    // Fetch all devices and groups in parallel
+    var devicesTask = DeviceFunctions.GetAllDevicesAsync();
+    var groupsTask = DeviceFunctions.GetDeviceGroupsAsync();
+    await Task.WhenAll(devicesTask, groupsTask);
+
+    var allDevices = devicesTask.Result;
+    groups = groupsTask.Result;
+
+    // Count active (online) devices
+    activeDeviceCount = allDevices.Count(d => d.IsOnline);
+
+    // Fetch latest sensor reading for every device across all groups in parallel
+    var allGroupDevices = groups.SelectMany(g => g.Devices).ToList();
+    var sensorTasks = allGroupDevices
+        .Select(async device =>
         {
-            pendingDeviceId = PendingDeviceStore.PendingDeviceId;
-            StateHasChanged();
+          device.LatestReading = await DeviceFunctions.GetLatestSensorDataAsync(device.DeviceId);
         });
-    }
+    await Task.WhenAll(sensorTasks);
 
-    private void OpenAddDevice()
+    // Compute average temperature from all readings that have a temperature value
+    var temps = allGroupDevices
+        .Where(d => d.LatestReading?.Temperature is not null)
+        .Select(d => d.LatestReading!.Temperature!.Value)
+        .ToList();
+    averageTemperature = temps.Count > 0 ? temps.Average() : null;
+
+    isLoading = false;
+  }
+
+  private static string FormatTemp(double? temp)
+      => temp is not null ? $"{temp:0.0}°C" : "--";
+
+  private void HandlePendingChanged()
+  {
+    _ = InvokeAsync(() =>
     {
-        showAddDevice = true;
-        errorMessage = null;
-        pendingDeviceId = PendingDeviceStore.PendingDeviceId;
-    }
+      pendingDeviceId = PendingDeviceStore.PendingDeviceId;
+      StateHasChanged();
+    });
+  }
 
-    private void CancelAddDevice()
+  private void OpenAddDevice()
+  {
+    showAddDevice = true;
+    errorMessage = null;
+    pendingDeviceId = PendingDeviceStore.PendingDeviceId;
+  }
+
+  private void CancelAddDevice()
+  {
+    showAddDevice = false;
+    errorMessage = null;
+    friendlyName = "";
+  }
+
+  private bool CanSubmit =>
+      !isSubmitting &&
+      !string.IsNullOrWhiteSpace(pendingDeviceId) &&
+      !string.IsNullOrWhiteSpace(friendlyName);
+
+  private async Task SubmitAddDevice()
+  {
+    if (!CanSubmit || http is null) return;
+
+    isSubmitting = true;
+    errorMessage = null;
+
+    try
     {
-        showAddDevice = false;
-        errorMessage = null;
-        friendlyName = "";
-    }
+      DeviceAddRequest? request = new DeviceAddRequest
+      {
+        DeviceId = pendingDeviceId!,
+        FriendlyName = friendlyName.Trim()
+      };
 
-    private bool CanSubmit =>
-        !isSubmitting &&
-        !string.IsNullOrWhiteSpace(pendingDeviceId) &&
-        !string.IsNullOrWhiteSpace(friendlyName);
-
-    private async Task SubmitAddDevice()
-    {
-        if (!CanSubmit || http is null) return;
-
-        isSubmitting = true;
-        errorMessage = null;
+      var (success, message) = await DeviceFunctions.AddDeviceAsync(request);
 
         try
         {
@@ -503,11 +456,34 @@
     }
 
     public void Dispose()
-    {
-        PendingDeviceStore.Changed -= HandlePendingChanged;
-        http?.Dispose();
+      if (success)
+      {
+        showAddDevice = false;
+        friendlyName = "";
+      }
+      else
+      {
+        errorMessage = message;
+      }
+
+      showAddDevice = false;
+      friendlyName = "";
     }
-}
+    catch (Exception ex)
+    {
+      errorMessage = ex.Message;
+    }
+    finally
+    {
+      isSubmitting = false;
+    }
+  }
 
 
 @* Styling is in wwwroot/app.css *@
+  public void Dispose()
+  {
+    PendingDeviceStore.Changed -= HandlePendingChanged;
+    http?.Dispose();
+  }
+}
