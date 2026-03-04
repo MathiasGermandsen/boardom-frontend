@@ -131,305 +131,306 @@ else
 
 @if (showManageDevices)
 {
-    <div class="add-device-overlay">
-        <div class="add-device-modal" @onclick:stopPropagation="true">
-            <h1 class="add-device-title">MANAGE DEVICES</h1>
+  <div class="add-device-overlay">
+    <div class="add-device-modal" @onclick:stopPropagation="true">
+      <h1 class="add-device-title">MANAGE DEVICES</h1>
 
-            @if (isLoadingDevices)
-            {
-                <p class="add-device-waiting">Loading devices...</p>
-            }
-            else if (devices == null || !devices.Any())
-            {
-                <p class="add-device-waiting">No devices found.</p>
-            }
-            else
-            {
-                <div class="manage-device-list">
-                    @foreach (var device in devices)
-                    {
-                        <div class="manage-device-item">
-                            @if (editingDeviceId == device.DeviceId)
-                            {
-                                <div class="manage-device-edit">
-                                    <input class="form-control" @bind="editFriendlyName" @bind:event="oninput" />
-                                    <div class="manage-device-actions">
-                                        <button class="btn btn-primary" @onclick="() => SubmitEditDevice(device.DeviceId)" disabled="@(isSubmitting || string.IsNullOrWhiteSpace(editFriendlyName))">Save</button>
-                                        <button class="btn btn-secondary" @onclick="CancelEdit" disabled="@isSubmitting">Cancel</button>
-                                    </div>
-                                </div>
-                            }
-                            else
-                            {
-                                <div class="manage-device-info">
-                                    <span class="device-friendly-name">@device.FriendlyName</span>
-                                    <span class="device-id-small">@device.DeviceId</span>
-                                    <span class="device-state @(device.IsActive ? "online" : "offline")">
-                                        ● @(device.IsActive ? "Active" : "Inactive")
-                                    </span>
-                                </div>
-                                <div class="manage-device-actions">
-                                    <button class="btn btn-secondary" @onclick="() => StartEditDevice(device)" disabled="@isSubmitting">Edit</button>
-                                    <button class="btn btn-danger" @onclick="() => ToggleDeviceActive(device)" disabled="@isSubmitting">
-                                        @(device.IsActive ? "Deactivate" : "Activate")
-                                    </button>
-                                </div>
-                            }
-                        </div>
-                    }
+      @if (isLoadingDevices)
+      {
+        <p class="add-device-waiting">Loading devices...</p>
+      }
+      else if (devices == null || !devices.Any())
+      {
+        <p class="add-device-waiting">No devices found.</p>
+      }
+      else
+      {
+        <div class="manage-device-list">
+          @foreach (var device in devices)
+          {
+            <div class="manage-device-item">
+              @if (editingDeviceId == device.DeviceId)
+              {
+                <div class="manage-device-edit">
+                  <input class="form-control" @bind="editFriendlyName" @bind:event="oninput" />
+                  <div class="manage-device-actions">
+                    <button class="btn btn-primary" @onclick="() => SubmitEditDevice(device.DeviceId)"
+                            disabled="@(isSubmitting || string.IsNullOrWhiteSpace(editFriendlyName))">Save</button>
+                    <button class="btn btn-secondary" @onclick="CancelEdit" disabled="@isSubmitting">Cancel</button>
+                  </div>
                 </div>
-            }
-
-            @if (!string.IsNullOrWhiteSpace(manageErrorMessage))
-            {
-                <div class="add-device-error">@manageErrorMessage</div>
-            }
-
-            <div class="add-device-actions">
-                <button class="btn btn-secondary" @onclick="CloseManageDevices">Close</button>
+              }
+              else
+              {
+                <div class="manage-device-info">
+                  <span class="device-friendly-name">@device.FriendlyName</span>
+                  <span class="device-id-small">@device.DeviceId</span>
+                  <span class="device-state @(device.IsActive ? "online" : "offline")">
+                    ● @(device.IsActive ? "Active" : "Inactive")
+                  </span>
+                </div>
+                <div class="manage-device-actions">
+                  <button class="btn btn-secondary" @onclick="() => StartEditDevice(device)"
+                          disabled="@isSubmitting">Edit</button>
+                  <button class="btn btn-danger" @onclick="() => ToggleDeviceActive(device)" disabled="@isSubmitting">
+                    @(device.IsActive ? "Deactivate" : "Activate")
+                  </button>
+                </div>
+              }
             </div>
+          }
         </div>
+      }
+
+      @if (!string.IsNullOrWhiteSpace(manageErrorMessage))
+      {
+        <div class="add-device-error">@manageErrorMessage</div>
+      }
+
+      <div class="add-device-actions">
+        <button class="btn btn-secondary" @onclick="CloseManageDevices">Close</button>
+      </div>
     </div>
+  </div>
 }
 
 @code {
-    private bool showAddDevice;
-    private string? pendingDeviceId;
-    private string friendlyName = "";
-    private string? errorMessage;
-    private bool isSubmitting;
-    private HttpClient? http;
+  private bool showAddDevice;
+  private string? pendingDeviceId;
+  private string friendlyName = "";
+  private string? errorMessage;
+  private bool isSubmitting;
+  private HttpClient? http;
 
-    // Manage devices
-    private bool showManageDevices;
-    private bool isLoadingDevices;
-    private List<DeviceInfo>? devices;
-    private string? editingDeviceId;
-    private string editFriendlyName = "";
-    private string? manageErrorMessage;
+  // Manage devices
+  private bool showManageDevices;
+  private bool isLoadingDevices;
+  private List<DeviceInfo>? devices;
+  private string? editingDeviceId;
+  private string editFriendlyName = "";
+  private string? manageErrorMessage;
 
-    private bool isLoading = true;
-    private List<DeviceGroup> groups = new();
-    private int activeDeviceCount;
-    private double? averageTemperature;
+  private bool isLoading = true;
+  private List<DeviceGroup> groups = new();
+  private int activeDeviceCount;
+  private double? averageTemperature;
 
-    private static readonly (string Icon, string Label, Func<SensorReading?, string> Format)[] SensorDefinitions =
-    {
+  private static readonly (string Icon, string Label, Func<SensorReading?, string> Format)[] SensorDefinitions =
+  {
         ("L", "Light", r => r?.Light is not null ? $"{r.Light:0} lx" : "N/A"),
         ("T", "Temperature", r => r?.Temperature is not null ? $"{r.Temperature:0.0}°C" : "N/A"),
         ("H", "Humidity", r => r?.Humidity is not null ? $"{r.Humidity:0}%" : "N/A"),
         ("P", "Pressure", r => r?.Pressure is not null ? $"{r.Pressure:0.00} kPa" : "N/A"),
-        ("M", "Moisture", r => r?.Moisture is not null ? $"{r.Moisture:0.0}%" : "N/A"),
     };
 
-    protected override async Task OnInitializedAsync()
-    {
-        http = new HttpClient { BaseAddress = new Uri(NavigationManager.BaseUri) };
-        PendingDeviceStore.Changed += HandlePendingChanged;
-        pendingDeviceId = PendingDeviceStore.PendingDeviceId;
+  protected override async Task OnInitializedAsync()
+  {
+    http = new HttpClient { BaseAddress = new Uri(NavigationManager.BaseUri) };
+    PendingDeviceStore.Changed += HandlePendingChanged;
+    pendingDeviceId = PendingDeviceStore.PendingDeviceId;
 
-        await LoadDashboardDataAsync();
-    }
+    await LoadDashboardDataAsync();
+  }
 
-    private async Task LoadDashboardDataAsync()
-    {
-        isLoading = true;
+  private async Task LoadDashboardDataAsync()
+  {
+    isLoading = true;
 
-        var devicesTask = DeviceFunctions.GetAllDevicesAsync();
-        var groupsTask = DeviceFunctions.GetDeviceGroupsAsync();
-        await Task.WhenAll(devicesTask, groupsTask);
+    var devicesTask = DeviceFunctions.GetAllDevicesAsync();
+    var groupsTask = DeviceFunctions.GetDeviceGroupsAsync();
+    await Task.WhenAll(devicesTask, groupsTask);
 
-        var allDevices = devicesTask.Result;
-        groups = groupsTask.Result;
+    var allDevices = devicesTask.Result;
+    groups = groupsTask.Result;
 
-        activeDeviceCount = allDevices.Count(d => d.IsOnline);
+    activeDeviceCount = allDevices.Count(d => d.IsOnline);
 
-        var allGroupDevices = groups.SelectMany(g => g.Devices).ToList();
-        var sensorTasks = allGroupDevices
-            .Select(async device =>
-            {
-                device.LatestReading = await DeviceFunctions.GetLatestSensorDataAsync(device.DeviceId);
-            });
-        await Task.WhenAll(sensorTasks);
-
-        var temps = allGroupDevices
-            .Where(d => d.LatestReading?.Temperature is not null)
-            .Select(d => d.LatestReading!.Temperature!.Value)
-            .ToList();
-        averageTemperature = temps.Count > 0 ? temps.Average() : null;
-
-        isLoading = false;
-    }
-
-    private static string FormatTemp(double? temp)
-        => temp is not null ? $"{temp:0.0}°C" : "--";
-
-    private void HandlePendingChanged()
-    {
-        _ = InvokeAsync(() =>
+    var allGroupDevices = groups.SelectMany(g => g.Devices).ToList();
+    var sensorTasks = allGroupDevices
+        .Select(async device =>
         {
-            pendingDeviceId = PendingDeviceStore.PendingDeviceId;
-            StateHasChanged();
+          device.LatestReading = await DeviceFunctions.GetLatestSensorDataAsync(device.DeviceId);
         });
-    }
+    await Task.WhenAll(sensorTasks);
 
-    private void OpenAddDevice()
-    {
-        showAddDevice = true;
-        errorMessage = null;
-        pendingDeviceId = PendingDeviceStore.PendingDeviceId;
-    }
+    var temps = allGroupDevices
+        .Where(d => d.LatestReading?.Temperature is not null)
+        .Select(d => d.LatestReading!.Temperature!.Value)
+        .ToList();
+    averageTemperature = temps.Count > 0 ? temps.Average() : null;
 
-    private void CancelAddDevice()
+    isLoading = false;
+  }
+
+  private static string FormatTemp(double? temp)
+      => temp is not null ? $"{temp:0.0}°C" : "--";
+
+  private void HandlePendingChanged()
+  {
+    _ = InvokeAsync(() =>
     {
+      pendingDeviceId = PendingDeviceStore.PendingDeviceId;
+      StateHasChanged();
+    });
+  }
+
+  private void OpenAddDevice()
+  {
+    showAddDevice = true;
+    errorMessage = null;
+    pendingDeviceId = PendingDeviceStore.PendingDeviceId;
+  }
+
+  private void CancelAddDevice()
+  {
+    showAddDevice = false;
+    errorMessage = null;
+    friendlyName = "";
+  }
+
+  private bool CanSubmit =>
+      !isSubmitting &&
+      !string.IsNullOrWhiteSpace(pendingDeviceId) &&
+      !string.IsNullOrWhiteSpace(friendlyName);
+
+  private async Task SubmitAddDevice()
+  {
+    if (!CanSubmit || http is null) return;
+
+    isSubmitting = true;
+    errorMessage = null;
+
+    try
+    {
+      var request = new DeviceAddRequest
+      {
+        DeviceId = pendingDeviceId!,
+        FriendlyName = friendlyName.Trim()
+      };
+
+      var (success, message) = await DeviceFunctions.AddDeviceAsync(request);
+
+      if (success)
+      {
         showAddDevice = false;
-        errorMessage = null;
         friendlyName = "";
+      }
+      else
+      {
+        errorMessage = message;
+      }
     }
-
-    private bool CanSubmit =>
-        !isSubmitting &&
-        !string.IsNullOrWhiteSpace(pendingDeviceId) &&
-        !string.IsNullOrWhiteSpace(friendlyName);
-
-    private async Task SubmitAddDevice()
+    catch (Exception ex)
     {
-        if (!CanSubmit || http is null) return;
-
-        isSubmitting = true;
-        errorMessage = null;
-
-        try
-        {
-            var request = new DeviceAddRequest
-            {
-                DeviceId = pendingDeviceId!,
-                FriendlyName = friendlyName.Trim()
-            };
-
-            var (success, message) = await DeviceFunctions.AddDeviceAsync(request);
-
-            if (success)
-            {
-                showAddDevice = false;
-                friendlyName = "";
-            }
-            else
-            {
-                errorMessage = message;
-            }
-        }
-        catch (Exception ex)
-        {
-            errorMessage = ex.Message;
-        }
-        finally
-        {
-            isSubmitting = false;
-        }
+      errorMessage = ex.Message;
     }
-
-    private async Task OpenManageDevices()
+    finally
     {
-        showManageDevices = true;
-        manageErrorMessage = null;
+      isSubmitting = false;
+    }
+  }
+
+  private async Task OpenManageDevices()
+  {
+    showManageDevices = true;
+    manageErrorMessage = null;
+    editingDeviceId = null;
+    await LoadDevices();
+  }
+
+  private void CloseManageDevices()
+  {
+    showManageDevices = false;
+    manageErrorMessage = null;
+    editingDeviceId = null;
+    editFriendlyName = "";
+  }
+
+  private async Task LoadDevices()
+  {
+    isLoadingDevices = true;
+    try
+    {
+      devices = await DeviceFunctions.GetDevicesAsync();
+    }
+    catch (Exception ex)
+    {
+      manageErrorMessage = ex.Message;
+    }
+    finally
+    {
+      isLoadingDevices = false;
+    }
+  }
+
+  private void StartEditDevice(DeviceInfo device)
+  {
+    editingDeviceId = device.DeviceId;
+    editFriendlyName = device.FriendlyName;
+    manageErrorMessage = null;
+  }
+
+  private void CancelEdit()
+  {
+    editingDeviceId = null;
+    editFriendlyName = "";
+  }
+
+  private async Task SubmitEditDevice(string deviceId)
+  {
+    isSubmitting = true;
+    manageErrorMessage = null;
+    try
+    {
+      var request = new DeviceEditRequest { DeviceId = deviceId, FriendlyName = editFriendlyName.Trim() };
+      var (success, message) = await DeviceFunctions.EditDeviceAsync(request);
+      if (success)
+      {
         editingDeviceId = null;
+        editFriendlyName = "";
         await LoadDevices();
+      }
+      else
+      {
+        manageErrorMessage = message;
+      }
     }
-
-    private void CloseManageDevices()
+    catch (Exception ex)
     {
-        showManageDevices = false;
-        manageErrorMessage = null;
-        editingDeviceId = null;
-        editFriendlyName = "";
+      manageErrorMessage = ex.Message;
     }
-
-    private async Task LoadDevices()
+    finally
     {
-        isLoadingDevices = true;
-        try
-        {
-            devices = await DeviceFunctions.GetDevicesAsync();
-        }
-        catch (Exception ex)
-        {
-            manageErrorMessage = ex.Message;
-        }
-        finally
-        {
-            isLoadingDevices = false;
-        }
+      isSubmitting = false;
     }
+  }
 
-    private void StartEditDevice(DeviceInfo device)
+  private async Task ToggleDeviceActive(DeviceInfo device)
+  {
+    isSubmitting = true;
+    manageErrorMessage = null;
+    try
     {
-        editingDeviceId = device.DeviceId;
-        editFriendlyName = device.FriendlyName;
-        manageErrorMessage = null;
+      var request = new DeviceDeleteRequest { DeviceId = device.DeviceId, IsActive = !device.IsActive };
+      var (success, message) = await DeviceFunctions.SetDeviceActiveAsync(request);
+      if (success)
+        await LoadDevices();
+      else
+        manageErrorMessage = message;
     }
+    catch (Exception ex)
+    {
+      manageErrorMessage = ex.Message;
+    }
+    finally
+    {
+      isSubmitting = false;
+    }
+  }
 
-    private void CancelEdit()
-    {
-        editingDeviceId = null;
-        editFriendlyName = "";
-    }
-
-    private async Task SubmitEditDevice(string deviceId)
-    {
-        isSubmitting = true;
-        manageErrorMessage = null;
-        try
-        {
-            var request = new DeviceEditRequest { DeviceId = deviceId, FriendlyName = editFriendlyName.Trim() };
-            var (success, message) = await DeviceFunctions.EditDeviceAsync(request);
-            if (success)
-            {
-                editingDeviceId = null;
-                editFriendlyName = "";
-                await LoadDevices();
-            }
-            else
-            {
-                manageErrorMessage = message;
-            }
-        }
-        catch (Exception ex)
-        {
-            manageErrorMessage = ex.Message;
-        }
-        finally
-        {
-            isSubmitting = false;
-        }
-    }
-
-    private async Task ToggleDeviceActive(DeviceInfo device)
-    {
-        isSubmitting = true;
-        manageErrorMessage = null;
-        try
-        {
-            var request = new DeviceDeleteRequest { DeviceId = device.DeviceId, IsActive = !device.IsActive };
-            var (success, message) = await DeviceFunctions.SetDeviceActiveAsync(request);
-            if (success)
-                await LoadDevices();
-            else
-                manageErrorMessage = message;
-        }
-        catch (Exception ex)
-        {
-            manageErrorMessage = ex.Message;
-        }
-        finally
-        {
-            isSubmitting = false;
-        }
-    }
-
-    public void Dispose()
-    {
-        PendingDeviceStore.Changed -= HandlePendingChanged;
-        http?.Dispose();
-    }
+  public void Dispose()
+  {
+    PendingDeviceStore.Changed -= HandlePendingChanged;
+    http?.Dispose();
+  }
 }

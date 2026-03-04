@@ -1,0 +1,208 @@
+@page "/devices"
+@using Boardom.Models
+@using Boardom.Services
+@inject DeviceFunctions DeviceService
+
+<PageTitle>Devices - BOARDOM</PageTitle>
+
+<style>
+  .devices-page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 3rem;
+    animation: fadeInDown 0.6s ease-out;
+  }
+
+  .devices-page-header .dashboard-title,
+  .devices-page-header .dashboard-subtitle {
+    text-align: left;
+  }
+
+  .devices-refresh-btn {
+    background: rgba(59, 125, 217, 0.15);
+    color: #3b7dd9;
+    border: 1px solid rgba(59, 125, 217, 0.3);
+    padding: 0.6rem 1.4rem;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+  }
+
+  .devices-refresh-btn:hover:not(:disabled) {
+    background: rgba(59, 125, 217, 0.25);
+    border-color: #3b7dd9;
+    transform: translateY(-1px);
+  }
+
+  .devices-refresh-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .devices-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .device-id-label {
+    color: #7a8fa3;
+    font-size: 0.75rem;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    margin-top: 0.25rem;
+    letter-spacing: 0.2px;
+  }
+
+  .devices-empty {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: #7a8fa3;
+    font-size: 1rem;
+    background: #1a2332;
+    border-radius: 8px;
+    border: 1px solid rgba(59, 125, 217, 0.15);
+  }
+
+  .devices-stats {
+    display: flex;
+    gap: 2rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 3rem;
+    animation: fadeInUp 0.6s ease-out 0.1s backwards;
+  }
+
+  @@media (max-width: 900px) {
+    .devices-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .devices-page-header {
+      flex-direction: column;
+      gap: 1rem;
+    }
+  }
+</style>
+
+<div class="dashboard-container">
+  <div class="devices-page-header">
+    <div>
+      <h1 class="dashboard-title">Stored Devices</h1>
+      <p class="dashboard-subtitle">Manage and view all registered sensor devices</p>
+    </div>
+    <button class="devices-refresh-btn" @onclick="LoadDevicesAsync" disabled="@isLoading">
+      ↻ Refresh
+    </button>
+  </div>
+
+  @if (isLoading)
+  {
+    <div style="text-align:center;padding:5rem;color:#e8eef7;">Loading devices…</div>
+  }
+  else if (devices == null || !devices.Any())
+  {
+    <div class="devices-empty">
+      No devices found in the system.
+    </div>
+  }
+  else
+  {
+    <div class="devices-stats">
+      <div class="stat-card">
+        <div class="stat-icon">●</div>
+        <span class="stat-label">TOTAL DEVICES</span>
+        <span class="stat-value">@devices.Count</span>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">●</div>
+        <span class="stat-label">ONLINE</span>
+        <span class="stat-value">@devices.Count(d => d.IsOnline)</span>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">●</div>
+        <span class="stat-label">OFFLINE</span>
+        <span class="stat-value">@devices.Count(d => !d.IsOnline)</span>
+      </div>
+    </div>
+
+    <div class="devices-grid">
+      @foreach (var device in devices)
+      {
+        <div class="arduino-card">
+          <div class="card-header" style="align-items: flex-start;">
+            <div>
+              <h3>@device.Name</h3>
+              <div class="device-id-label">@device.DeviceId</div>
+            </div>
+            @if (device.IsOnline)
+            {
+              <span class="device-status online">● Online</span>
+            }
+            else
+            {
+              <span class="device-status offline">● Offline</span>
+            }
+          </div>
+          <div class="sensor-data">
+            @{
+              var disabled = !device.IsOnline || device.LatestReading is null;
+            }
+            @foreach (var sensor in SensorDefinitions)
+            {
+              <div class="sensor-item @(disabled ? "disabled" : "")">
+                <div class="sensor-info">
+                  <span class="sensor-icon">@sensor.Icon</span>
+                  <span class="sensor-label">@sensor.Label</span>
+                </div>
+                <span class="sensor-value">@sensor.Format(device.LatestReading)</span>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>
+
+@code {
+  private List<Device> devices = new();
+  private bool isLoading = true;
+
+  private static readonly (string Icon, string Label, Func<SensorReading?, string> Format)[] SensorDefinitions =
+  {
+    ("L", "Light", r => r?.Light is not null ? $"{r.Light:0} lx" : "N/A"),
+    ("T", "Temperature", r => r?.Temperature is not null ? $"{r.Temperature:0.0}°C" : "N/A"),
+    ("H", "Humidity", r => r?.Humidity is not null ? $"{r.Humidity:0}%" : "N/A"),
+    ("P", "Pressure", r => r?.Pressure is not null ? $"{r.Pressure:0.00} kPa" : "N/A"),
+  };
+
+  protected override async Task OnInitializedAsync()
+  {
+    await LoadDevicesAsync();
+  }
+
+  private async Task LoadDevicesAsync()
+  {
+    isLoading = true;
+    try
+    {
+      devices = await DeviceService.GetAllDevicesAsync();
+
+      var tasks = devices.Select(async d =>
+      {
+        d.LatestReading = await DeviceService.GetLatestSensorDataAsync(d.DeviceId);
+      });
+
+      await Task.WhenAll(tasks);
+    }
+    finally
+    {
+      isLoading = false;
+    }
+  }
+}
