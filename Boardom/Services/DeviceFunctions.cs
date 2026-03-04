@@ -132,7 +132,7 @@ public sealed class DeviceFunctions
 
     public async Task <List<DeviceInfo>> GetDevicesAsync()
     {
-        using HttpResponseMessage response = await _httpClient.GetAsync("Device");
+        using HttpResponseMessage response = await _httpClient.GetAsync("Device/getAll");
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadFromJsonAsync<List<DeviceInfo>>() ?? new();
     }
@@ -145,8 +145,14 @@ public sealed class DeviceFunctions
         if (string.IsNullOrWhiteSpace(request.FriendlyName))
             return (false, "Friendly name is required"); 
 
+        _logger.LogInformation("[DEBUG] EditDevice request: DeviceId={DeviceId}, FriendlyName={friendlyName}",
+        request.DeviceId, request.FriendlyName);
+
         using HttpResponseMessage response = await _httpClient.PutAsJsonAsync("Device/edit", request);
         string result = await response.Content.ReadAsStringAsync();
+
+        _logger.LogInformation("[DEBUG] EditDevice response: Status={Status}, Body={Body}", 
+            response.StatusCode, result);
 
         if (response.IsSuccessStatusCode)
             return (true, result);

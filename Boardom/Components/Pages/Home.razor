@@ -164,14 +164,14 @@ else
                                 <div class="manage-device-info">
                                     <span class="device-friendly-name">@device.FriendlyName</span>
                                     <span class="device-id-small">@device.DeviceId</span>
-                                    <span class="device-state @(device.IsActive ? "online" : "offline")">
-                                        ● @(device.IsActive ? "Active" : "Inactive")
+                                    <span class="device-state @(!device.IsActive ? "online" : "offline")">
+                                        ● @(!device.IsActive ? "Active" : "Inactive")
                                     </span>
                                 </div>
                                 <div class="manage-device-actions">
                                     <button class="btn btn-secondary" @onclick="() => StartEditDevice(device)" disabled="@isSubmitting">Edit</button>
                                     <button class="btn btn-danger" @onclick="() => ToggleDeviceActive(device)" disabled="@isSubmitting">
-                                        @(device.IsActive ? "Deactivate" : "Activate")
+                                        Delete
                                     </button>
                                 </div>
                             }
@@ -410,7 +410,7 @@ else
         manageErrorMessage = null;
         try
         {
-            var request = new DeviceDeleteRequest { DeviceId = device.DeviceId, IsActive = !device.IsActive };
+            DeviceDeleteRequest? request = new DeviceDeleteRequest { DeviceId = device.DeviceId, IsActive = false };
             var (success, message) = await DeviceFunctions.SetDeviceActiveAsync(request);
             if (success)
                 await LoadDevices();

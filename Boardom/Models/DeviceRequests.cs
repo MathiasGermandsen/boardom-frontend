@@ -31,7 +31,7 @@ public sealed class DeviceEditRequest
     [JsonPropertyName("deviceId")]
     public string DeviceId { get; set; } = string.Empty;
 
-    [JsonPropertyName("friendlyName")]
+    [JsonPropertyName("newFriendlyName")]
     public string FriendlyName { get; set; } = string.Empty;
 }
 
