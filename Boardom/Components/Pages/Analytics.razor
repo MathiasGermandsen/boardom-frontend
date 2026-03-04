@@ -1,0 +1,170 @@
+@page "/analytics"
+@using Boardom.Models
+@using Microsoft.AspNetCore.Components.Authorization
+@using Boardom.Services
+
+@inject NavigationManager NavigationManager
+@inject DeviceFunctions DeviceFunctions
+
+<PageTitle>BOARDOM - Analytics</PageTitle>
+
+<div class="analytics-container">
+    <div class="analytics-header">
+        <h1 class="analytics-title">Analytics</h1>
+        <p class="analytics-subtitle">View and analyze device data</p>
+    </div>
+
+    <!-- Device Selection Modal -->
+    @if (!deviceSelected)
+    {
+        <div class="analytics-overlay">
+            <div class="analytics-modal">
+                <h2 class="modal-title">Select Device</h2>
+                <p class="modal-subtitle">Choose a device to analyze</p>
+
+                <div class="device-list">
+                    @foreach (Device device in deviceList)
+                    {
+                       <div class="device-item" @onclick="() => SelectDevice(device)">
+                            <span class="device-name">@device.Name</span>
+                            @if (device.IsOnline)
+                            {
+                                <span class="device-status online">Online</span>
+                            }
+                            else
+                            {
+                                <span class="device-status offline">Offline</span>
+                            }
+                       </div> 
+                    }
+                </div>
+
+                <div class="modal-actions">
+                    <button class="btn btn-secondary" @onclick="CancelSelection">Cancel</button>
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (deviceSelected)
+    {
+        <div class="analytics-controls">
+            <div class="selected-device-display">
+                <span class="selected-device-label">Device:</span>
+                <span class="selected-device-name">@selectedDevice?.Name</span>
+            </div>
+            
+            <div class="control-group">
+                <label class="control-label">Data Type</label>
+                <select class="form-control analytics-select" @bind="selectedDataType">
+                    <option>Temperature</option>
+                    <option>Humidity</option>
+                    <option>Light Level</option>
+                    <option>Pressure</option>
+                    <option>Moisture</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label class="control-label">Start Date</label>
+                <input type="date" class="form-control analytics-date" @bind="startDate"/>
+            </div>
+
+            <div class="control-group">
+                <label class="control-label">End Date</label>
+                <input type="date" class="form-control analytics-date" @bind="endDate"/>
+            </div>
+
+            <div class="control-actions">
+                <button class="btn btn-secondary" @onclick="ChangeDevice">Change Device</button>
+                <button class="btn btn-primary" @onclick="ShowData">View Data</button>
+            </div>
+        </div>
+
+        @if (showData)
+        {
+
+        }
+        else
+        {
+        <div class="analytics-content">
+            <div class="chart-placeholder">
+                <div class="chart-icon">📊</div>
+                <p class="chart-text">Chart visualization will appear here</p>
+            </div>
+        </div>
+        }
+    }
+</div>
+
+@code {
+
+    List<Device> deviceList = new List<Device>();
+    List<double?> dataList = new List<double?>();
+    private Device? selectedDevice;
+
+    private bool deviceSelected = false;
+    private bool showData = false;
+    private string selectedDataType = "Temperature";
+    private DateTime startDate = DateTime.Now;
+    private DateTime endDate = DateTime.Now;
+
+    protected override async Task OnInitializedAsync()
+    {
+        deviceList = await DeviceFunctions.GetAllDevicesAsync();
+    }
+
+    private void CancelSelection()
+    {
+        NavigationManager.NavigateTo("/home");
+    }
+
+    private void SelectDevice(Device device)
+    {
+        deviceSelected = true;
+        selectedDevice = device;
+    }
+
+    private void ChangeDevice()
+    {
+        deviceSelected = false;
+    }
+
+    private async Task ShowData()
+    {
+        dataList.Clear();
+        List<SensorReading> allData = await DeviceFunctions.GetFilteredSensorDataAsync(selectedDevice.DeviceId, selectedDataType, startDate, endDate);
+
+        if (selectedDataType == "Temperature")
+        {
+            foreach (SensorReading data in allData)
+            {
+                dataList.Add(data.Temperature);
+            }
+        }
+
+        if (selectedDataType == "Humidity")
+        {
+            foreach (SensorReading data in allData)
+            {
+                dataList.Add(data.Humidity);
+            }
+        }
+
+        if (selectedDataType == "Pressure")
+        {
+            foreach (SensorReading data in allData)
+            {
+                dataList.Add(data.Pressure);
+            }
+        }
+
+        if (selectedDataType == "Light")
+        {
+            foreach (SensorReading data in allData)
+            {
+                dataList.Add(data.Light);
+            }
+        }
+    }
+}
