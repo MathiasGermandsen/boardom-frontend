@@ -49,7 +49,7 @@ public sealed class DeviceFunctions
   {
     try
     {
-      var raw = await _httpClient.GetStringAsync("Group/getAll");
+      string raw = await _httpClient.GetStringAsync("Group/getAll");
       _logger.LogInformation("[DEBUG] Group/getAll raw JSON: {Json}", raw);
       return JsonSerializer.Deserialize<List<DeviceGroup>>(raw, new JsonSerializerOptions { PropertyNameCaseInsensitive = true })
              ?? new List<DeviceGroup>();
@@ -65,7 +65,7 @@ public sealed class DeviceFunctions
   {
     try
     {
-      var raw = await _httpClient.GetStringAsync("Device/getAll");
+      string raw = await _httpClient.GetStringAsync("Device/getAll");
       _logger.LogInformation("[DEBUG] Device/getAll raw JSON: {Json}", raw);
       return JsonSerializer.Deserialize<List<Device>>(raw, new JsonSerializerOptions { PropertyNameCaseInsensitive = true })
              ?? new List<Device>();
@@ -75,6 +75,74 @@ public sealed class DeviceFunctions
       _logger.LogError(ex, "[DEBUG] Device/getAll failed");
       return new List<Device>();
     }
+  }
+
+  public async Task<List<SensorReading>?> GetFilteredSensorDataAsync(string deviceId, string dataType, DateTime startDate, DateTime endDate)
+  {
+    if (string.IsNullOrWhiteSpace(deviceId))
+    {
+      _logger.LogWarning("[DEBUG] GetFilteredSensorDataAsync called with empty deviceId");
+      return null;
+    }
+
+    try
+    {
+      string encodedId = Uri.EscapeDataString(deviceId);
+      string start = startDate.Date.ToString("yyyy/MM/dd");
+      string end = endDate.Date.ToString("yyyy/MM/dd");
+
+      string url = $"Data/sensorData/{encodedId}?page=1&startDate={start}&endDate={end}";
+      _logger.LogInformation("[DEBUG] Fetching sensor data from: {Url}", url);
+
+      HttpResponseMessage response = await _httpClient.GetAsync(url);
+      string raw = await response.Content.ReadAsStringAsync();
+
+      if (!response.IsSuccessStatusCode) return null;
+
+      JsonSerializerOptions options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+
+      try
+      {
+        using JsonDocument doc = JsonDocument.Parse(raw);
+        if (doc.RootElement.TryGetProperty("items", out JsonElement itemsElement))
+        {
+          List<SensorReading>? data = JsonSerializer.Deserialize<List<SensorReading>>(itemsElement.GetRawText(), options);
+          if (data?.Count > 0)
+          {
+            return data;
+          }
+        }
+      }
+      catch { }
+
+      try
+      {
+        PaginatedSensorResponse? paginated = JsonSerializer.Deserialize<PaginatedSensorResponse>(raw, options);
+        if (paginated?.Data?.Count > 0)
+        {
+          return paginated.Data;
+        }
+      }
+      catch { }
+
+      try
+      {
+        List<SensorReading>? data = JsonSerializer.Deserialize<List<SensorReading>>(raw, options);
+        if (data?.Count > 0)
+        {
+          return data;
+        }
+      }
+      catch { }
+
+      return null;
+    }
+    catch (Exception ex)
+    {
+      _logger.LogError($"[ERROR] {ex.Message}");
+    }
+
+    return null;
   }
 
   public async Task<SensorReading?> GetLatestSensorDataAsync(string deviceId)
@@ -91,22 +159,22 @@ public sealed class DeviceFunctions
       string url = $"Data/sensorData/{encoded}?page=1";
       _logger.LogInformation("[DEBUG] Fetching sensor data from: {Url}", url);
 
-      var response = await _httpClient.GetAsync(url);
-      var raw = await response.Content.ReadAsStringAsync();
+      HttpResponseMessage response = await _httpClient.GetAsync(url);
+      string raw = await response.Content.ReadAsStringAsync();
       _logger.LogInformation("[DEBUG] Data/sensorData/{DeviceId} status={Status}, body={Json}",
         deviceId, response.StatusCode, raw.Length > 500 ? raw[..500] : raw);
 
       if (!response.IsSuccessStatusCode) return null;
 
-      var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+      JsonSerializerOptions options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
 
       try
       {
-        var paginated = JsonSerializer.Deserialize<PaginatedSensorResponse>(raw, options);
+        PaginatedSensorResponse? paginated = JsonSerializer.Deserialize<PaginatedSensorResponse>(raw, options);
         if (paginated?.Data?.Count > 0)
         {
           // Skip entries where all sensor values are zero (heartbeat pings)
-          var real = paginated.Data.FirstOrDefault(r =>
+          SensorReading? real = paginated.Data.FirstOrDefault(r =>
             r.Temperature != 0 || r.Humidity != 0 || r.Light != 0 || r.Pressure != 0);
           return real ?? paginated.Data.First();
         }
@@ -115,7 +183,7 @@ public sealed class DeviceFunctions
 
       try
       {
-        var list = JsonSerializer.Deserialize<List<SensorReading>>(raw, options);
+        List<SensorReading>? list = JsonSerializer.Deserialize<List<SensorReading>>(raw, options);
         if (list?.Count > 0) return list.First();
       }
       catch { }
@@ -130,7 +198,7 @@ public sealed class DeviceFunctions
     
   }
 
-    public async Task <List<DeviceInfo>> GetDevicesAsync()
+    public async Task<List<DeviceInfo>> GetDevicesAsync()
     {
         using HttpResponseMessage response = await _httpClient.GetAsync("Device/getAll");
         response.EnsureSuccessStatusCode();
