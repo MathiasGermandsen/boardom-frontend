@@ -79,6 +79,9 @@ public class SensorReading
   [JsonPropertyName("light")]
   public double? Light { get; set; }
 
+  [JsonPropertyName("dateAdded")]
+  public DateTime DateAdded { get; set; }
+
   [JsonPropertyName("temperature")]
   public double? Temperature { get; set; }
 

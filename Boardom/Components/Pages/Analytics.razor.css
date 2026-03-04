@@ -171,8 +171,12 @@
     margin-bottom: 2rem;
 }
 
+.selected-device-display:hover {
+    cursor: pointer;
+}
+
 .selected-device-label {
-    font-size: 0.85rem;
+    font-size: 1rem;
     font-weight: 600;
     color: #b0b9c3;
     text-transform: uppercase;

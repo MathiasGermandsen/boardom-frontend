@@ -5,6 +5,7 @@
 
 @inject NavigationManager NavigationManager
 @inject DeviceFunctions DeviceFunctions
+@inject IJSRuntime JS
 
 <PageTitle>BOARDOM - Analytics</PageTitle>
 
@@ -49,7 +50,7 @@
     @if (deviceSelected)
     {
         <div class="analytics-controls">
-            <div class="selected-device-display">
+            <div class="selected-device-display" @onclick="ChangeDevice">
                 <span class="selected-device-label">Device:</span>
                 <span class="selected-device-name">@selectedDevice?.Name</span>
             </div>
@@ -57,11 +58,10 @@
             <div class="control-group">
                 <label class="control-label">Data Type</label>
                 <select class="form-control analytics-select" @bind="selectedDataType">
-                    <option>Temperature</option>
-                    <option>Humidity</option>
-                    <option>Light Level</option>
-                    <option>Pressure</option>
-                    <option>Moisture</option>
+                    <option value="Temperature">Temperature</option>
+                    <option value="Humidity">Humidity</option>
+                    <option value="Light">Light Level</option>
+                    <option value="Pressure">Pressure</option>
                 </select>
             </div>
 
@@ -76,22 +76,30 @@
             </div>
 
             <div class="control-actions">
-                <button class="btn btn-secondary" @onclick="ChangeDevice">Change Device</button>
                 <button class="btn btn-primary" @onclick="ShowData">View Data</button>
             </div>
         </div>
 
         @if (showData)
         {
-
+            <div class="analytics-content">
+                <canvas id="analyticsChart" class="w-100" style="max-height:500px; height:500px;" ></canvas>
+            </div>
         }
         else
         {
         <div class="analytics-content">
-            <div class="chart-placeholder">
-                <div class="chart-icon">📊</div>
-                <p class="chart-text">Chart visualization will appear here</p>
-            </div>
+            @if (!string.IsNullOrEmpty(noDataMessage))
+            {
+                <div class="no-data alert alert-warning">@noDataMessage</div>
+            }
+            else
+            {
+                <div class="chart-placeholder">
+                    <div class="chart-icon">📊</div>
+                    <p class="chart-text">Chart visualization will appear here</p>
+                </div>
+            }
         </div>
         }
     }
@@ -101,13 +109,15 @@
 
     List<Device> deviceList = new List<Device>();
     List<double?> dataList = new List<double?>();
+    List<DateTime> timeList = new List<DateTime>();
     private Device? selectedDevice;
-
     private bool deviceSelected = false;
     private bool showData = false;
+    private List<string> labels = new List<string>();
+    private string noDataMessage = string.Empty;
     private string selectedDataType = "Temperature";
     private DateTime startDate = DateTime.Now;
-    private DateTime endDate = DateTime.Now;
+    private DateTime endDate = DateTime.Now.AddDays(1);
 
     protected override async Task OnInitializedAsync()
     {
@@ -128,12 +138,41 @@
     private void ChangeDevice()
     {
         deviceSelected = false;
+        showData = false;
     }
 
     private async Task ShowData()
     {
+        if (selectedDevice == null)
+        {
+            return;
+        }
+
         dataList.Clear();
-        List<SensorReading> allData = await DeviceFunctions.GetFilteredSensorDataAsync(selectedDevice.DeviceId, selectedDataType, startDate, endDate);
+        timeList.Clear();
+        labels.Clear();
+
+        List<SensorReading>? allData = await DeviceFunctions.GetFilteredSensorDataAsync(
+            selectedDevice.DeviceId,
+            selectedDataType,
+            startDate,
+            endDate);
+
+        if (allData == null || allData.Count == 0)
+        {
+            noDataMessage = "No data available for the selected device/date/type.";
+            showData = false;
+            await InvokeAsync(StateHasChanged);
+            return;
+        }
+
+        allData = allData.OrderBy(r => r.DateAdded).ToList();
+
+        foreach (SensorReading data in allData)
+        {
+            timeList.Add(data.DateAdded);
+            labels.Add(data.DateAdded.ToLocalTime().ToString("MM/dd HH:mm"));
+        }
 
         if (selectedDataType == "Temperature")
         {
@@ -142,29 +181,55 @@
                 dataList.Add(data.Temperature);
             }
         }
-
-        if (selectedDataType == "Humidity")
+        else if (selectedDataType == "Humidity")
         {
             foreach (SensorReading data in allData)
             {
                 dataList.Add(data.Humidity);
             }
         }
-
-        if (selectedDataType == "Pressure")
+        else if (selectedDataType == "Pressure")
         {
             foreach (SensorReading data in allData)
             {
                 dataList.Add(data.Pressure);
             }
         }
-
-        if (selectedDataType == "Light")
+        else if (selectedDataType == "Light")
         {
             foreach (SensorReading data in allData)
             {
                 dataList.Add(data.Light);
             }
         }
+
+        noDataMessage = string.Empty;
+        showData = true;
+        await InvokeAsync(StateHasChanged);
+        await Task.Yield();
+        await JS.InvokeVoidAsync("renderLineChart", labels.ToArray(), dataList.ToArray());
     }
 }
+
+<!-- chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    function renderLineChart(labels, values) {
+        const canvas = document.getElementById('analyticsChart');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        if (window._analyticsChart) window._analyticsChart.destroy();
+        window._analyticsChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{ label: "Data", data: values, fill: false, borderColor: 'rgba(59,125,217,0.8)', tension: 0.1 }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: { x: { display: true }, y: { display: true } }
+            }
+        });
+    }
+</script>
