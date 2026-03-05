@@ -76,6 +76,20 @@
                 <input type="date" class="form-control analytics-date" @bind="endDate"/>
             </div>
 
+            <div class="control-group">
+                <label class="control-label">Data Thinning Factor</label>
+                <select class="form-control analytics-select" @bind="thinningFactor">
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="9">8</option>
+                </select>
+            </div>
+
             <div class="control-actions">
                 <button class="btn btn-primary" @onclick="ShowData">View Data</button>
             </div>
@@ -84,7 +98,18 @@
         @if (showData)
         {
             <div class="analytics-content">
-                <canvas id="analyticsChart" class="w-100" style="max-height:500px; height:500px;" ></canvas>
+                @if (isLoadingData)
+                {
+                    <div class="chart-loading" style="text-align:center;padding:5rem;">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <canvas id="analyticsChart" class="w-100" style="max-height:500px; height:500px;" ></canvas>
+                }
             </div>
         }
         else
@@ -114,11 +139,14 @@
     private Device? selectedDevice;
     private bool deviceSelected = false;
     private bool showData = false;
+    private bool isLoadingData = false;
     private List<string> labels = new List<string>();
     private string noDataMessage = string.Empty;
     private string selectedDataType = "Temperature";
     private DateTime startDate = DateTime.Now;
     private DateTime endDate = DateTime.Now.AddDays(1);
+
+    private int thinningFactor = 1;
 
     protected override async Task OnInitializedAsync()
     {
@@ -149,25 +177,55 @@
             return;
         }
 
+        isLoadingData = true;
+        showData = true;
+        noDataMessage = string.Empty;
+        await InvokeAsync(StateHasChanged);
+
         dataList.Clear();
         timeList.Clear();
         labels.Clear();
 
-        List<SensorReading>? allData = await DeviceFunctions.GetFilteredSensorDataAsync(
+        int currentPage = 1;
+
+        List<SensorReading>? allData = new List<SensorReading>();
+
+        while (true)
+        {
+            allData.AddRange(await DeviceFunctions.GetFilteredSensorDataAsync(
             selectedDevice.DeviceId,
             selectedDataType,
             startDate,
-            endDate);
+            endDate,
+            currentPage));
+
+            if (allData.Count < (100 * currentPage))
+            {
+                break;
+            }
+            else
+            {
+                currentPage++;
+            }
+        }
+
+        allData = allData.OrderBy(r => r.DateAdded).ToList();
+
+        if (allData.Count > thinningFactor)
+        {
+            allData = allData
+                .Where((_, idx) => idx % thinningFactor == 0)
+                .ToList();
+        }
 
         if (allData == null || allData.Count == 0)
         {
             noDataMessage = "No data available for the selected device/date/type.";
             showData = false;
+            isLoadingData = false;
             await InvokeAsync(StateHasChanged);
             return;
         }
-
-        allData = allData.OrderBy(r => r.DateAdded).ToList();
 
         foreach (SensorReading data in allData)
         {
@@ -206,6 +264,7 @@
 
         noDataMessage = string.Empty;
         showData = true;
+        isLoadingData = false;
         await InvokeAsync(StateHasChanged);
         await Task.Yield();
         await JS.InvokeVoidAsync("renderLineChart", labels.ToArray(), dataList.ToArray());

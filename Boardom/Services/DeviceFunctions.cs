@@ -77,7 +77,7 @@ public sealed class DeviceFunctions
     }
   }
 
-  public async Task<List<SensorReading>?> GetFilteredSensorDataAsync(string deviceId, string dataType, DateTime startDate, DateTime endDate)
+  public async Task<List<SensorReading>?> GetFilteredSensorDataAsync(string deviceId, string dataType, DateTime startDate, DateTime endDate, int page)
   {
     if (string.IsNullOrWhiteSpace(deviceId))
     {
@@ -91,7 +91,7 @@ public sealed class DeviceFunctions
       string start = startDate.Date.ToString("yyyy/MM/dd");
       string end = endDate.Date.ToString("yyyy/MM/dd");
 
-      string url = $"Data/sensorData/{encodedId}?page=1&startDate={start}&endDate={end}";
+      string url = $"Data/sensorData/{encodedId}?page={page}&startDate={start}&endDate={end}";
       _logger.LogInformation("[DEBUG] Fetching sensor data from: {Url}", url);
 
       HttpResponseMessage response = await _httpClient.GetAsync(url);
