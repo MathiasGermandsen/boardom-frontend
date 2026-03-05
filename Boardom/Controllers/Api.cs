@@ -33,26 +33,4 @@ public IActionResult Connect([FromBody] DeviceConnectRequest request)
     _pendingDeviceStore.SetConnected(request.DeviceId);
     return Ok(new { success = true });
   }
-
-[HttpPost("heartbeat")]
-  public async Task <IActionResult> Heartbeat([FromBody] DeviceConnectRequest request)
-  {
-    if (request == null || string.IsNullOrWhiteSpace(request.DeviceId))
-      return BadRequest(new { success = false, message = "Device ID is required" });
-
-    try
-        {
-            string encodedDeviceId = Uri.EscapeDataString(request.DeviceId);
-            using HttpResponseMessage response = await _httpClient.GetAsync($"Device/{encodedDeviceId}");
-
-            if (response.IsSuccessStatusCode)
-              return Ok(new {success = true });            
-
-              return StatusCode((int)response.StatusCode, new {success = false, message = "Device not found"});
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, new {success = false, ex.Message});
-        }
-  }
 }

@@ -5,6 +5,7 @@
 
 @inject NavigationManager NavigationManager
 @inject DeviceFunctions DeviceFunctions
+@inject DeviceStatus DeviceStatus
 @inject IJSRuntime JS
 
 <PageTitle>BOARDOM - Analytics</PageTitle>
@@ -28,7 +29,7 @@
                     {
                        <div class="device-item" @onclick="() => SelectDevice(device)">
                             <span class="device-name">@device.Name</span>
-                            @if (device.IsOnline)
+                            @if (DeviceStatus.StatusList[device.DeviceId])
                             {
                                 <span class="device-status online">Online</span>
                             }

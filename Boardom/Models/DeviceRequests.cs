@@ -66,8 +66,8 @@ public class Device
   [JsonPropertyName("friendlyName")]
   public string Name { get; set; } = string.Empty;
 
-  [JsonPropertyName("isOnline")]
-  public bool IsOnline { get; set; } = true;
+  [JsonPropertyName("lastHeartbeat")]
+  public DateTime LastHeartbeat {get; set;}
 
   /// <summary>Populated client-side after fetching sensor data.</summary>
   [JsonIgnore]
