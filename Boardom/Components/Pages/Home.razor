@@ -211,7 +211,7 @@ else
   private string? manageErrorMessage;
 
   private bool isLoading = true;
-  private List<DeviceGroup> groups = new();
+  private List<DeviceGroup> groups = new List<DeviceGroup>();
   private int activeDeviceCount;
   private double? averageTemperature;
 
@@ -236,24 +236,24 @@ else
   {
     isLoading = true;
 
-    var devicesTask = DeviceFunctions.GetAllDevicesAsync();
-    var groupsTask = DeviceFunctions.GetDeviceGroupsAsync();
+    Task<List<Device>>? devicesTask = DeviceFunctions.GetAllDevicesAsync();
+    Task<List<DeviceGroup>>? groupsTask = DeviceFunctions.GetDeviceGroupsAsync();
     await Task.WhenAll(devicesTask, groupsTask);
 
-    var allDevices = devicesTask.Result;
+    List<Device>? allDevices = devicesTask.Result;
     groups = groupsTask.Result;
 
     activeDeviceCount = allDevices.Count(d => d.IsOnline);
 
-    var allGroupDevices = groups.SelectMany(g => g.Devices).ToList();
-    var sensorTasks = allGroupDevices
+    List<Device>? allGroupDevices = groups.SelectMany(g => g.Devices).ToList();
+    IEnumerable<Task>? sensorTasks = allGroupDevices
         .Select(async device =>
         {
           device.LatestReading = await DeviceFunctions.GetLatestSensorDataAsync(device.DeviceId);
         });
     await Task.WhenAll(sensorTasks);
 
-    var temps = allGroupDevices
+    List<double>? temps = allGroupDevices
         .Where(d => d.LatestReading?.Temperature is not null)
         .Select(d => d.LatestReading!.Temperature!.Value)
         .ToList();
@@ -283,9 +283,11 @@ else
 
   private void CancelAddDevice()
   {
-    showAddDevice = false;
-    errorMessage = null;
+    PendingDeviceStore.Clear();
+    pendingDeviceId = null;
     friendlyName = "";
+    errorMessage = null;
+    showAddDevice = false;
   }
 
   private bool CanSubmit =>
@@ -302,18 +304,16 @@ else
 
     try
     {
-      var request = new DeviceAddRequest
-      {
-        DeviceId = pendingDeviceId!,
-        FriendlyName = friendlyName.Trim()
-      };
-
+      DeviceAddRequest? request = new DeviceAddRequest { DeviceId = pendingDeviceId!, FriendlyName = friendlyName };
       var (success, message) = await DeviceFunctions.AddDeviceAsync(request);
 
       if (success)
       {
-        showAddDevice = false;
+        PendingDeviceStore.Clear();
         friendlyName = "";
+        pendingDeviceId = null;
+        showAddDevice = false;
+        await LoadDashboardDataAsync();
       }
       else
       {
@@ -382,7 +382,7 @@ else
     manageErrorMessage = null;
     try
     {
-      var request = new DeviceEditRequest { DeviceId = deviceId, FriendlyName = editFriendlyName.Trim() };
+      DeviceEditRequest? request = new DeviceEditRequest { DeviceId = deviceId, FriendlyName = editFriendlyName.Trim() };
       var (success, message) = await DeviceFunctions.EditDeviceAsync(request);
       if (success)
       {
@@ -411,7 +411,7 @@ else
     manageErrorMessage = null;
     try
     {
-      var request = new DeviceDeleteRequest { DeviceId = device.DeviceId, IsActive = !device.IsActive };
+      DeviceDeleteRequest? request = new DeviceDeleteRequest { DeviceId = device.DeviceId, IsActive = !device.IsActive };
       var (success, message) = await DeviceFunctions.SetDeviceActiveAsync(request);
       if (success)
         await LoadDevices();
