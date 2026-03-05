@@ -17,8 +17,13 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
+// application services
 builder.Services.AddSingleton<PendingDeviceStore>();
 builder.Services.AddScoped<Boardom.Services.DeviceFunctions>();
+
+// DeviceStatus is a background worker but we also need to inject it into components
+builder.Services.AddSingleton<DeviceStatus>();
+builder.Services.AddHostedService(sp => sp.GetRequiredService<DeviceStatus>());
 
 builder.Services.AddResponseCompression(options =>
 {

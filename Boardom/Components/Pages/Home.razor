@@ -7,6 +7,7 @@
 @inject PendingDeviceStore PendingDeviceStore
 @inject NavigationManager NavigationManager
 @inject DeviceFunctions DeviceFunctions
+@inject DeviceStatus DeviceStatus
 
 @attribute [Authorize]
 
@@ -41,7 +42,7 @@ else
       </div>
     </div>
     <div class="dashboard-groups">
-      @foreach (var group in groups)
+      @foreach (DeviceGroup group in groups)
       {
         <div class="dashboard-group">
           <div class="group-header">
@@ -49,12 +50,12 @@ else
             <span class="device-count">@group.Devices.Count device@(group.Devices.Count != 1 ? "s" : "")</span>
           </div>
           <div class="arduino-list">
-            @foreach (var device in group.Devices)
+            @foreach (Device device in group.Devices)
             {
               <div class="arduino-card">
                 <div class="card-header">
                   <h3>@device.Name</h3>
-                  @if (device.IsOnline)
+                  @if (DeviceStatus.StatusList[device.DeviceId])
                   {
                     <span class="device-status online">● Online</span>
                   }
@@ -65,7 +66,7 @@ else
                 </div>
                 <div class="sensor-data">
                   @{
-                    var disabled = !device.IsOnline || device.LatestReading is null;
+                    var disabled = !DeviceStatus.StatusList[device.DeviceId] || device.LatestReading is null;
                   }
                   @foreach (var sensor in SensorDefinitions)
                   {
@@ -243,7 +244,7 @@ else
     var allDevices = devicesTask.Result;
     groups = groupsTask.Result;
 
-    activeDeviceCount = allDevices.Count(d => d.IsOnline);
+    activeDeviceCount = DeviceStatus.StatusList.Count(x => x.Value);
 
     var allGroupDevices = groups.SelectMany(g => g.Devices).ToList();
     var sensorTasks = allGroupDevices
