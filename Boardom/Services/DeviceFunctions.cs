@@ -135,14 +135,14 @@ public sealed class DeviceFunctions
       }
       catch { }
 
-      return null;
+      return new List<SensorReading>();
     }
     catch (Exception ex)
     {
       _logger.LogError($"[ERROR] {ex.Message}");
     }
 
-    return null;
+    return new List<SensorReading>();
   }
 
   public async Task<SensorReading?> GetLatestSensorDataAsync(string deviceId)
