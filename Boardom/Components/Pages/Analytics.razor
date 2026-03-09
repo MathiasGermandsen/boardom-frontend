@@ -135,6 +135,7 @@
                 }
                 else
                 {
+                    <h3 style="text-align:center; font-family: inherit;">Max: @maxValue | Min: @minValue | Avg: @avgValue</h3>
                     <canvas id="analyticsChart" class="w-100" style="max-height:500px; height:500px;" ></canvas>
                 }
             </div>
@@ -165,6 +166,10 @@
         public double? Data { get; set;}
         public DateTime Time { get; set;}
     }
+
+    private double? maxValue = 0;
+    private double? minValue = Int32.MaxValue;
+    private double? avgValue = 0;
 
     List<Device> deviceList = new List<Device>();
     List<DeviceGroup> groupList = new List<DeviceGroup>();
@@ -227,6 +232,15 @@
             return;
         }
 
+        if (isLoadingData)
+        {
+            return;
+        }
+
+        maxValue = 0;
+        minValue = Int32.MaxValue;
+        avgValue = 0;
+
         isLoadingData = true;
         showData = true;
         noDataMessage = string.Empty;
@@ -283,14 +297,28 @@
             {
                 DataObject dataObj = new DataObject();
                 dataObj.Data = GetValue(data);
+
+                if (dataObj.Data == 0)
+                {
+                    continue;
+                }
+
                 dataObj.Time = data.DateAdded;
                 singleData.Add(dataObj);
+
+                maxValue = dataObj.Data > maxValue ? dataObj.Data : maxValue;
+                minValue = dataObj.Data < minValue ? dataObj.Data : minValue;
+                avgValue += dataObj.Data;
             }
+
+            avgValue = Math.Round(avgValue.Value / singleData.Count, 2);
+            
 
         }
         else if (selectedGroup != null)
         {
             // Group logic
+            int count = 0;
 
             foreach (Device device in selectedGroup.Devices)
             {
@@ -337,8 +365,20 @@
                 {
                     DataObject dataObj = new DataObject();
                     dataObj.Data = GetValue(data);
+
+                    if (dataObj.Data == 0)
+                    {
+                        continue;
+                    }
+
                     dataObj.Time = data.DateAdded;
                     tempData.Add(dataObj);
+
+                    maxValue = dataObj.Data > maxValue ? dataObj.Data : maxValue;
+                    minValue = dataObj.Data < minValue ? dataObj.Data : minValue;
+                    avgValue += dataObj.Data;
+
+                    count++;
                 }
 
                 groupData[device.Name] = tempData;
@@ -353,6 +393,7 @@
                 }
             }
 
+            avgValue = Math.Round(avgValue.Value / count, 2);
         }
 
         noDataMessage = string.Empty;
