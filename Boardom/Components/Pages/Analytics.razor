@@ -2,6 +2,7 @@
 @using Boardom.Models
 @using Microsoft.AspNetCore.Components.Authorization
 @using Boardom.Services
+@using System.Linq
 
 @inject NavigationManager NavigationManager
 @inject DeviceFunctions DeviceFunctions
@@ -17,29 +18,55 @@
     </div>
 
     <!-- Device Selection Modal -->
-    @if (!deviceSelected)
+    @if (!selected)
     {
         <div class="analytics-overlay">
             <div class="analytics-modal">
-                <h2 class="modal-title">Select Device</h2>
-                <p class="modal-subtitle">Choose a device to analyze</p>
+                <h2 class="modal-title">Select Device or Group</h2>
+                <p class="modal-subtitle">Choose a device or group to analyze</p>
 
-                <div class="device-list">
-                    @foreach (Device device in deviceList)
-                    {
-                       <div class="device-item" @onclick="() => SelectDevice(device)">
-                            <span class="device-name">@device.Name</span>
-                            @if (DeviceStatus.StatusList[device.DeviceId])
-                            {
-                                <span class="device-status online">Online</span>
-                            }
-                            else
-                            {
-                                <span class="device-status offline">Offline</span>
-                            }
-                       </div> 
-                    }
+                <div class="selection-mode">
+                    <label>
+                        <input type="radio" name="selectionMode" checked="@(selectionMode == "Devices")" @onchange='() => selectionMode = "Devices"' />
+                        Devices
+                    </label>
+                    <label>
+                        <input type="radio" name="selectionMode" checked="@(selectionMode == "Groups")" @onchange='() => selectionMode = "Groups"' />
+                        Groups
+                    </label>
                 </div>
+
+                @if (selectionMode == "Devices")
+                {
+                    <div class="device-list">
+                        @foreach (Device device in deviceList)
+                        {
+                           <div class="device-item" @onclick="() => SelectDevice(device)">
+                                <span class="device-name">@device.Name</span>
+                                @if (DeviceStatus.StatusList[device.DeviceId])
+                                {
+                                    <span class="device-status online">Online</span>
+                                }
+                                else
+                                {
+                                    <span class="device-status offline">Offline</span>
+                                }
+                           </div> 
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="group-list">
+                        @foreach (DeviceGroup group in groupList)
+                        {
+                           <div class="group-item" @onclick="() => SelectGroup(group)">
+                                <span class="group-name">@group.Name</span>
+                                <span class="group-device-count">@group.Devices.Count devices</span>
+                           </div> 
+                        }
+                    </div>
+                }
 
                 <div class="modal-actions">
                     <button class="btn btn-secondary" @onclick="CancelSelection">Cancel</button>
@@ -48,12 +75,12 @@
         </div>
     }
 
-    @if (deviceSelected)
+    @if (selected)
     {
         <div class="analytics-controls">
             <div class="selected-device-display" @onclick="ChangeDevice">
-                <span class="selected-device-label">Device:</span>
-                <span class="selected-device-name">@selectedDevice?.Name</span>
+                <span class="selected-device-label">Selected:</span>
+                <span class="selected-device-name">@(selectedDevice?.Name ?? selectedGroup?.Name)</span>
             </div>
             
             <div class="control-group">
@@ -133,11 +160,22 @@
 
 @code {
 
+    private class DataObject
+    {
+        public double? Data { get; set;}
+        public DateTime Time { get; set;}
+    }
+
     List<Device> deviceList = new List<Device>();
-    List<double?> dataList = new List<double?>();
-    List<DateTime> timeList = new List<DateTime>();
+    List<DeviceGroup> groupList = new List<DeviceGroup>();
+
+    List<DataObject> singleData = new List<DataObject>();
+    Dictionary<string, List<DataObject>> groupData = new Dictionary<string, List<DataObject>>();
+
     private Device? selectedDevice;
-    private bool deviceSelected = false;
+    private DeviceGroup? selectedGroup;
+
+    private bool selected = false;
     private bool showData = false;
     private bool isLoadingData = false;
     private List<string> labels = new List<string>();
@@ -145,12 +183,14 @@
     private string selectedDataType = "Temperature";
     private DateTime startDate = DateTime.Now;
     private DateTime endDate = DateTime.Now.AddDays(1);
+    private string selectionMode = "Devices";
 
     private int thinningFactor = 1;
 
     protected override async Task OnInitializedAsync()
     {
         deviceList = await DeviceFunctions.GetAllDevicesAsync();
+        groupList = await DeviceFunctions.GetDeviceGroupsAsync();
     }
 
     private void CancelSelection()
@@ -160,19 +200,29 @@
 
     private void SelectDevice(Device device)
     {
-        deviceSelected = true;
+        selected = true;
         selectedDevice = device;
+        selectedGroup = null;
+    }
+
+    private void SelectGroup(DeviceGroup group)
+    {
+        selected = true;
+        selectedGroup = group;
+        selectedDevice = null;
     }
 
     private void ChangeDevice()
     {
-        deviceSelected = false;
+        selected = false;
         showData = false;
+        selectedDevice = null;
+        selectedGroup = null;
     }
 
     private async Task ShowData()
     {
-        if (selectedDevice == null)
+        if (selectedDevice == null && selectedGroup == null)
         {
             return;
         }
@@ -182,84 +232,127 @@
         noDataMessage = string.Empty;
         await InvokeAsync(StateHasChanged);
 
-        dataList.Clear();
-        timeList.Clear();
+        singleData.Clear();
+        groupData.Clear();
         labels.Clear();
 
-        int currentPage = 1;
-
-        List<SensorReading>? allData = new List<SensorReading>();
-
-        while (true)
+        if (selectedDevice != null)
         {
-            allData.AddRange(await DeviceFunctions.GetFilteredSensorDataAsync(
-            selectedDevice.DeviceId,
-            selectedDataType,
-            startDate,
-            endDate,
-            currentPage));
-            
-            if (allData.Count < (100 * currentPage))
+            // Single Device
+            int currentPage = 1;
+            List<SensorReading> allData = new List<SensorReading>();
+
+            while (true)
             {
-                break;
+                allData.AddRange(await DeviceFunctions.GetFilteredSensorDataAsync(
+                selectedDevice.DeviceId,
+                selectedDataType,
+                startDate,
+                endDate,
+                currentPage));
+                
+                if (allData.Count < (100 * currentPage))
+                {
+                    break;
+                }
+                else
+                {
+                    currentPage++;
+                }
             }
-            else
+
+            allData = allData.OrderBy(r => r.DateAdded).ToList();
+
+            if (allData.Count > thinningFactor)
             {
-                currentPage++;
+                allData = allData
+                    .Where((_, idx) => idx % thinningFactor == 0)
+                    .ToList();
             }
-        }
 
-        allData = allData.OrderBy(r => r.DateAdded).ToList();
+            if (allData == null || allData.Count == 0)
+            {
+                noDataMessage = "No data available for the selected device/date/type.";
+                showData = false;
+                isLoadingData = false;
+                await InvokeAsync(StateHasChanged);
+                return;
+            }
 
-        if (allData.Count > thinningFactor)
-        {
-            allData = allData
-                .Where((_, idx) => idx % thinningFactor == 0)
-                .ToList();
-        }
-
-        if (allData == null || allData.Count == 0)
-        {
-            noDataMessage = "No data available for the selected device/date/type.";
-            showData = false;
-            isLoadingData = false;
-            await InvokeAsync(StateHasChanged);
-            return;
-        }
-
-        foreach (SensorReading data in allData)
-        {
-            timeList.Add(data.DateAdded);
-            labels.Add(data.DateAdded.ToLocalTime().ToString("MM/dd HH:mm"));
-        }
-
-        if (selectedDataType == "Temperature")
-        {
             foreach (SensorReading data in allData)
             {
-                dataList.Add(data.Temperature);
+                DataObject dataObj = new DataObject();
+                dataObj.Data = GetValue(data);
+                dataObj.Time = data.DateAdded;
+                singleData.Add(dataObj);
             }
+
         }
-        else if (selectedDataType == "Humidity")
+        else if (selectedGroup != null)
         {
-            foreach (SensorReading data in allData)
+            // Group logic
+
+            foreach (Device device in selectedGroup.Devices)
             {
-                dataList.Add(data.Humidity);
+                int currentPage = 1;
+                List<SensorReading> allData = new List<SensorReading>();
+
+                while (true)
+                {
+                    allData.AddRange(await DeviceFunctions.GetFilteredSensorDataAsync(
+                    device.DeviceId,
+                    selectedDataType,
+                    startDate,
+                    endDate,
+                    currentPage));
+                    
+                    if (allData.Count < (100 * currentPage))
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        currentPage++;
+                    }
+                }
+
+                allData = allData.OrderBy(r => r.DateAdded).ToList();
+
+                if (allData.Count > thinningFactor)
+                {
+                    allData = allData
+                        .Where((_, idx) => idx % thinningFactor == 0)
+                        .ToList();
+                }
+
+                if (allData == null || allData.Count == 0)
+                {
+                    // Just skip this device
+                    continue;
+                }
+
+                List<DataObject> tempData = new List<DataObject>();
+
+                foreach (SensorReading data in allData)
+                {
+                    DataObject dataObj = new DataObject();
+                    dataObj.Data = GetValue(data);
+                    dataObj.Time = data.DateAdded;
+                    tempData.Add(dataObj);
+                }
+
+                groupData[device.Name] = tempData;
+
+                if (groupData.Count == 0)
+                {
+                    noDataMessage = "No data available for the selected group/date/type.";
+                    showData = false;
+                    isLoadingData = false;
+                    await InvokeAsync(StateHasChanged);
+                    return;
+                }
             }
-        }
-        else if (selectedDataType == "Pressure")
-        {
-            foreach (SensorReading data in allData)
-            {
-                dataList.Add(data.Pressure);
-            }
-        }
-        else if (selectedDataType == "Light")
-        {
-            foreach (SensorReading data in allData)
-            {
-                dataList.Add(data.Light);
-            }
+
         }
 
         noDataMessage = string.Empty;
@@ -267,29 +360,121 @@
         isLoadingData = false;
         await InvokeAsync(StateHasChanged);
         await Task.Yield();
-        await JS.InvokeVoidAsync("renderLineChart", labels.ToArray(), dataList.ToArray());
+
+        List<object> datasets = new List<object>();
+
+        if (selectedDevice != null)
+        {
+            datasets.Add(new {
+                label = selectedDevice.Name,
+                data = singleData.Select(d => new {
+                    x = new DateTimeOffset(d.Time).ToUnixTimeMilliseconds(),
+                    y = d.Data
+                }).ToArray()
+            });
+        }
+        else if (selectedGroup != null)
+        {
+            foreach (KeyValuePair<string, List<DataObject>> kvp in groupData)
+            {
+                datasets.Add(new {
+                    label = kvp.Key,
+                    data = kvp.Value.Select(d => new {
+                        x = new DateTimeOffset(d.Time).ToUnixTimeMilliseconds(),
+                        y = d.Data
+                    }).ToArray()
+                });
+            }
+        }
+
+        if (datasets.Count == 0)
+        {
+            showData = false;
+            await InvokeAsync(StateHasChanged);
+            return;
+        }
+
+        try
+        {
+            await JS.InvokeVoidAsync("renderLineChart", datasets);
+        }
+        catch (JSException jsEx)
+        {
+            noDataMessage = "Chart rendering error: " + jsEx.Message;
+            showData = false;
+            Console.Error.WriteLine(jsEx);
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private double? GetValue(SensorReading r)
+    {
+        if (selectedDataType == "Temperature") return r.Temperature;
+        else if (selectedDataType == "Humidity") return r.Humidity;
+        else if (selectedDataType == "Pressure") return r.Pressure;
+        else if (selectedDataType == "Light") return r.Light;
+        return null;
     }
 }
 
 <!-- chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
 <script>
-    function renderLineChart(labels, values) {
-        const canvas = document.getElementById('analyticsChart');
-        if (!canvas) return;
-        const ctx = canvas.getContext('2d');
-        if (window._analyticsChart) window._analyticsChart.destroy();
-        window._analyticsChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [{ label: "Data", data: values, fill: false, borderColor: 'rgba(59,125,217,0.8)', tension: 0.1 }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: { x: { display: true }, y: { display: true } }
-            }
-        });
+    const colors = [
+        'rgba(59,125,217,0.8)',
+        'rgba(255,99,132,0.8)',
+        'rgba(75,192,192,0.8)',
+        'rgba(255,205,86,0.8)',
+        'rgba(153,102,255,0.8)',
+        'rgba(255,159,64,0.8)',
+        'rgba(201,203,207,0.8)',
+        'rgba(54,162,235,0.8)',
+        'rgba(255,0,0,0.8)',
+        'rgba(0,255,0,0.8)'
+    ];
+
+    function getColor(label) {
+        let hash = 0;
+        for (let i = 0; i < label.length; i++) {
+            hash = label.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        return colors[Math.abs(hash) % colors.length];
     }
+
+function renderLineChart(datasets) {
+    const canvas = document.getElementById('analyticsChart');
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+
+    if (window._analyticsChart)
+        window._analyticsChart.destroy();
+
+    window._analyticsChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            datasets: datasets.map((d, index) => ({
+                label: d.label,
+                data: d.data,
+                fill: false,
+                borderColor: colors[index % colors.length],
+                tension: 0.1
+            }))
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: {
+                    type: 'time',
+                    display: true
+                },
+                y: {
+                    display: true
+                }
+            }
+        }
+    });
+}
 </script>
