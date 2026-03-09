@@ -3,6 +3,7 @@
 @using Microsoft.AspNetCore.Components.Authorization
 @using Boardom.Services
 @using System.Linq
+@using System.Reflection.Metadata.Ecma335
 
 @inject NavigationManager NavigationManager
 @inject DeviceFunctions DeviceFunctions
@@ -113,7 +114,7 @@
                     <option value="5">5</option>
                     <option value="6">6</option>
                     <option value="7">7</option>
-                    <option value="9">8</option>
+                    <option value="8">8</option>
                 </select>
             </div>
 
@@ -167,6 +168,9 @@
         public DateTime Time { get; set;}
     }
 
+    private bool shouldRenderChart = false;
+    private List<object> pendingDatasets = new List<object>();
+
     private double? maxValue = 0;
     private double? minValue = Int32.MaxValue;
     private double? avgValue = 0;
@@ -197,6 +201,15 @@
         deviceList = await DeviceFunctions.GetAllDevicesAsync();
         groupList = await DeviceFunctions.GetDeviceGroupsAsync();
     }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+{
+    if (shouldRenderChart)
+    {
+        shouldRenderChart = false;
+        await JS.InvokeVoidAsync("renderLineChart", pendingDatasets);
+    }
+}
 
     private void CancelSelection()
     {
@@ -437,7 +450,8 @@
 
         try
         {
-            await JS.InvokeVoidAsync("renderLineChart", datasets);
+            pendingDatasets = datasets;
+            shouldRenderChart = true;
         }
         catch (JSException jsEx)
         {
