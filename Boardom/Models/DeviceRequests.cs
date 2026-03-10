@@ -82,9 +82,6 @@ public class SensorReading
   [JsonPropertyName("light")]
   public double? Light { get; set; }
 
-  [JsonPropertyName("dateAdded")]
-  public DateTime DateAdded { get; set; }
-
   [JsonPropertyName("temperature")]
   public double? Temperature { get; set; }
 
@@ -96,6 +93,9 @@ public class SensorReading
 
   [JsonPropertyName("moisture")]
   public double? Moisture { get; set; }
+  
+  [JsonPropertyName("dateAdded")]
+  public DateTime DateAdded { get; set; }
 }
 
 /// <summary>Wrapper returned by the paginated sensor-data endpoint.</summary>

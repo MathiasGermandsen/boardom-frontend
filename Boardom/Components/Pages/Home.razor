@@ -234,7 +234,7 @@ else
     await LoadDashboardDataAsync();
   }
 
-  private async Task LoadDashboardDataAsync()
+  @* private async Task LoadDashboardDataAsync()
   {
     isLoading = true;
 
@@ -262,9 +262,9 @@ else
     averageTemperature = temps.Count > 0 ? temps.Average() : null;
 
     isLoading = false;
-  }
+  } *@
 
-  @* private async Task LoadDashboardDataAsync()
+  private async Task LoadDashboardDataAsync()
   {
     isLoading = true;
 
@@ -286,7 +286,7 @@ else
     averageTemperature = temps.Count > 0 ? temps.Average() : null;
 
     isLoading = false;
-  } *@
+  }
 
   private static string FormatTemp(double? temp)
       => temp is not null ? $"{temp:0.0}°C" : "--";
