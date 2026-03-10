@@ -27,7 +27,7 @@ else
       <div class="dashboard-stats">
         <div class="stat-card">
           <div class="stat-icon">●</div>
-          <span class="stat-label">ACTIVE DEVICES</span>
+          <span class="stat-label">ACTIVE DEVICES IN GROUPS</span>
           <span class="stat-value">@activeDeviceCount</span>
         </div>
         <div class="stat-card">
@@ -204,7 +204,6 @@ else
   private bool isSubmitting;
   private HttpClient? http;
 
-  // Manage devices
   private bool showManageDevices;
   private bool isLoadingDevices;
   private List<DeviceInfo>? devices;
@@ -231,38 +230,10 @@ else
     PendingDeviceStore.Changed += HandlePendingChanged;
     pendingDeviceId = PendingDeviceStore.PendingDeviceId;
 
+    activeDeviceCount = 0;
+
     await LoadDashboardDataAsync();
   }
-
-  @* private async Task LoadDashboardDataAsync()
-  {
-    isLoading = true;
-
-    Task<List<Device>>? devicesTask = DeviceFunctions.GetAllDevicesAsync();
-    Task<List<DeviceGroup>>? groupsTask = DeviceFunctions.GetDeviceGroupsAsync();
-    await Task.WhenAll(devicesTask, groupsTask);
-
-    List<Device>? allDevices = devicesTask.Result;
-    groups = groupsTask.Result;
-
-    activeDeviceCount = DeviceStatus.StatusList.Count(x => x.Value);
-
-    List<Device>? allGroupDevices = groups.SelectMany(g => g.Devices).ToList();
-    IEnumerable<Task>? sensorTasks = allGroupDevices
-        .Select(async device =>
-        {
-          device.LatestReading = await DeviceFunctions.GetLatestSensorDataAsync(device.DeviceId);
-        });
-    await Task.WhenAll(sensorTasks);
-
-    List<double>? temps = allGroupDevices
-        .Where(d => d.LatestReading?.Temperature is not null)
-        .Select(d => d.LatestReading!.Temperature!.Value)
-        .ToList();
-    averageTemperature = temps.Count > 0 ? temps.Average() : null;
-
-    isLoading = false;
-  } *@
 
   private async Task LoadDashboardDataAsync()
   {
@@ -271,9 +242,15 @@ else
     devices = await DeviceFunctions.GetDevicesAsync();
     groups = await DeviceFunctions.GetDeviceGroupsAsync();
 
-    activeDeviceCount = DeviceStatus.StatusList.Count(x => x.Value);
-
     List<Device>? allGroupDevices = groups.SelectMany(g => g.Devices).ToList();
+
+    foreach (Device dev in allGroupDevices)
+    {
+      if (DeviceStatus.StatusList[dev.DeviceId])
+      {
+        activeDeviceCount++;
+      }
+    }
 
     IEnumerable<Task>? sensorDataTask = allGroupDevices.Select(async device => {device.LatestReading = await DeviceFunctions.GetLatestSensorDataAsync(device.DeviceId);});
       
@@ -283,6 +260,7 @@ else
       .Where(d => d.LatestReading?.Temperature is not null)
       .Select(d => d.LatestReading!.Temperature!.Value)
       .ToList();
+
     averageTemperature = temps.Count > 0 ? temps.Average() : null;
 
     isLoading = false;

@@ -49,11 +49,6 @@ public class DeviceStatus : BackgroundService
             bool online = DateTime.UtcNow - dev.LastHeartbeat <= TimeSpan.FromMinutes(4);
 
             StatusList.Add(dev.DeviceId, online);    
-
-            if (!online)
-            {
-                _logger.LogInformation($"Device: {dev.DeviceId} is offline");
-            }
         }
     }
 }
