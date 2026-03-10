@@ -1,72 +1,75 @@
-using System.Text.Json.Serialization;
+using Newtonsoft.Json;
 
 namespace Boardom.Models;
 
 public sealed class DeviceConnectRequest
 {
-  [JsonPropertyName("deviceId")]
+  [JsonProperty("deviceId")]
   public string DeviceId { get; set; } = string.Empty;
 }
 
 public sealed class DeviceAddRequest
 {
-  [JsonPropertyName("deviceId")]
+  [JsonProperty("deviceId")]
   public string DeviceId { get; set; } = string.Empty;
 
-    [JsonPropertyName("friendlyName")]
+    [JsonProperty("friendlyName")]
     public string FriendlyName { get; set; } = string.Empty;
 }
 
 public sealed class DeviceDeleteRequest
 {
-    [JsonPropertyName("deviceId")]
+    [JsonProperty("deviceId")]
     public string DeviceId { get; set; } = string.Empty;
 
-    [JsonPropertyName ("IsActive")]
+    [JsonProperty ("IsActive")]
     public bool IsActive { get; set;}
 }
 
 public sealed class DeviceEditRequest
 {
-    [JsonPropertyName("deviceId")]
+    [JsonProperty("deviceId")]
     public string DeviceId { get; set; } = string.Empty;
 
-    [JsonPropertyName("newFriendlyName")]
+    [JsonProperty("newFriendlyName")]
     public string FriendlyName { get; set; } = string.Empty;
 }
 
 public sealed class DeviceInfo
 {
-    [JsonPropertyName("deviceId")]
+    [JsonProperty("deviceId")]
     public string DeviceId { get; set; } = string.Empty;
 
-    [JsonPropertyName("friendlyName")]
+    [JsonProperty("friendlyName")]
     public string FriendlyName { get; set; } = string.Empty;
 
-    [JsonPropertyName("isActive")]
+    [JsonProperty("isActive")]
     public bool IsActive { get; set; }
+    
+    [JsonIgnore]
+    public SensorReading? LatestReading { get; set; }
 }
 
 // ── Dashboard models ──
 
 public class DeviceGroup
 {
-  [JsonPropertyName("groupName")]
+  [JsonProperty("groupName")]
   public string Name { get; set; } = string.Empty;
 
-  [JsonPropertyName("devices")]
+  [JsonProperty("devices")]
   public List<Device> Devices { get; set; } = new();
 }
 
 public class Device
 {
-  [JsonPropertyName("deviceId")]
+  [JsonProperty("deviceId")]
   public string DeviceId { get; set; } = string.Empty;
 
-  [JsonPropertyName("friendlyName")]
+  [JsonProperty("friendlyName")]
   public string Name { get; set; } = string.Empty;
 
-  [JsonPropertyName("lastHeartbeat")]
+  [JsonProperty("lastHeartbeat")]
   public DateTime LastHeartbeat {get; set;}
 
   /// <summary>Populated client-side after fetching sensor data.</summary>
@@ -76,28 +79,28 @@ public class Device
 
 public class SensorReading
 {
-  [JsonPropertyName("light")]
+  [JsonProperty("light")]
   public double? Light { get; set; }
 
-  [JsonPropertyName("dateAdded")]
-  public DateTime DateAdded { get; set; }
-
-  [JsonPropertyName("temperature")]
+  [JsonProperty("temperature")]
   public double? Temperature { get; set; }
 
-  [JsonPropertyName("humidity")]
+  [JsonProperty("humidity")]
   public double? Humidity { get; set; }
 
-  [JsonPropertyName("pressure")]
+  [JsonProperty("pressure")]
   public double? Pressure { get; set; }
 
-  [JsonPropertyName("moisture")]
+  [JsonProperty("moisture")]
   public double? Moisture { get; set; }
+  
+  [JsonProperty("dateAdded")]
+  public DateTime DateAdded { get; set; }
 }
 
 /// <summary>Wrapper returned by the paginated sensor-data endpoint.</summary>
-public class PaginatedSensorResponse
+public class SensorDataResponse
 {
-  [JsonPropertyName("items")]
+  [JsonProperty("items")]
   public List<SensorReading> Data { get; set; } = new();
 }

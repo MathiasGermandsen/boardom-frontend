@@ -194,7 +194,7 @@
     {
       devices = await DeviceService.GetAllDevicesAsync();
 
-      var tasks = devices.Select(async d =>
+      IEnumerable<Task>? tasks = devices.Select(async d =>
       {
         d.LatestReading = await DeviceService.GetLatestSensorDataAsync(d.DeviceId);
       });
