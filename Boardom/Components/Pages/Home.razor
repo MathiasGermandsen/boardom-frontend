@@ -3,6 +3,7 @@
 @using Microsoft.AspNetCore.Authorization;
 @using Boardom.Models
 @using Boardom.Services
+@using System.Runtime.CompilerServices
 @implements IDisposable
 @inject PendingDeviceStore PendingDeviceStore
 @inject NavigationManager NavigationManager
@@ -262,6 +263,30 @@ else
 
     isLoading = false;
   }
+
+  @* private async Task LoadDashboardDataAsync()
+  {
+    isLoading = true;
+
+    devices = await DeviceFunctions.GetDevicesAsync();
+    groups = await DeviceFunctions.GetDeviceGroupsAsync();
+
+    activeDeviceCount = DeviceStatus.StatusList.Count(x => x.Value);
+
+    List<Device>? allGroupDevices = groups.SelectMany(g => g.Devices).ToList();
+
+    IEnumerable<Task>? sensorDataTask = allGroupDevices.Select(async device => {device.LatestReading = await DeviceFunctions.GetLatestSensorDataAsync(device.DeviceId);});
+      
+    await Task.WhenAll(sensorDataTask);
+
+    List<double>? temps = allGroupDevices
+      .Where(d => d.LatestReading?.Temperature is not null)
+      .Select(d => d.LatestReading!.Temperature!.Value)
+      .ToList();
+    averageTemperature = temps.Count > 0 ? temps.Average() : null;
+
+    isLoading = false;
+  } *@
 
   private static string FormatTemp(double? temp)
       => temp is not null ? $"{temp:0.0}°C" : "--";

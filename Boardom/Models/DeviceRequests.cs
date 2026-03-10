@@ -45,6 +45,9 @@ public sealed class DeviceInfo
 
     [JsonPropertyName("isActive")]
     public bool IsActive { get; set; }
+    
+    [JsonIgnore]
+    public SensorReading? LatestReading { get; set; }
 }
 
 // ── Dashboard models ──
@@ -96,7 +99,7 @@ public class SensorReading
 }
 
 /// <summary>Wrapper returned by the paginated sensor-data endpoint.</summary>
-public class PaginatedSensorResponse
+public class SensorDataResponse
 {
   [JsonPropertyName("items")]
   public List<SensorReading> Data { get; set; } = new();
