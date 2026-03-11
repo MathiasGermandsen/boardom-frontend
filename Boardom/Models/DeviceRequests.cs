@@ -109,24 +109,24 @@ public class SensorDataResponse
 //Group add/edit/delete and such...
 public sealed class GroupCreateRequest
 {
-  [JsonPropertyName("groupName")]
+  [JsonProperty("groupName")]
   public string GroupName { get; set; } = string.Empty;
 }
 
 public sealed class GroupEditRequest
 {
-  [JsonPropertyName("groupName")]
+  [JsonProperty("groupName")]
   public string GroupName { get; set; } = string.Empty;
 
-  [JsonPropertyName("newName")]
+  [JsonProperty("newName")]
   public string NewGroupName { get; set;} = string.Empty;
 }
 
 public sealed class GroupAddDeviceRequest
 {
-  [JsonPropertyName("groupName")]
+  [JsonProperty("groupName")]
   public string GroupName { get; set; } = string.Empty;
 
-  [JsonPropertyName("deviceId")]
+  [JsonProperty("deviceId")]
   public string DeviceId { get; set; } = string.Empty;
 }
