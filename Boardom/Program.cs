@@ -36,6 +36,9 @@ builder.Services.AddResponseCompression(options =>
 builder.Services.AddControllersWithViews();
 builder.Services.AddAuthorization();
 
+builder.Services.AddServerSideBlazor()
+    .AddCircuitOptions(options => { options.DetailedErrors = true; });
+
 builder.Services.AddAntiforgery(options =>
 {
     options.HeaderName = "X-CSRF-TOKEN";
@@ -140,7 +143,6 @@ app.UseStaticFiles(new StaticFileOptions
         ctx.Context.Response.Headers.Append("Cache-Control", "public, max-age=3600, must-revalidate");
     }
 });
-
 
 app.UseRouting();
 
