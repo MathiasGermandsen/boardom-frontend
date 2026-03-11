@@ -3,6 +3,7 @@
 @using Microsoft.AspNetCore.Authorization;
 @using Boardom.Models
 @using Boardom.Services
+@using Microsoft.IdentityModel.Abstractions
 @implements IDisposable
 @inject PendingDeviceStore PendingDeviceStore
 @inject NavigationManager NavigationManager
@@ -90,6 +91,7 @@ else
 
 <button type="button" class="fab-add-device" @onclick="OpenAddDevice" aria-label="Add device">+</button>
 <button type="button" class="fab-manage-devices" @onclick="OpenManageDevices" aria-label="Manage devices">⚙</button>
+<button type="button" class="fab-manage-groups" @onclick="OpenManageGroups" aria-label="Manage groups">⊞</button>
 
 @if (showAddDevice)
 {
@@ -195,6 +197,86 @@ else
   </div>
 }
 
+@if (showManageGroups)
+{
+  <div class="add-device-overlay">
+    <div class="add-device-modal" @onclick:stopPropagation="true">
+      <h1 class="add-device-title">MANAGE GROUPS</h1>
+
+      @if (isLoadingGroups)
+      {
+        <p class="add-device-waiting">Loading groups...</p>
+      }
+      else
+      {
+        <div class="manage-device-list">
+          @foreach (DeviceGroup group in managedGroups)
+          {
+            <div class="manage-device-item">
+              @if (editingGroupName == group.Name)
+              {
+                <div class="manage-device-edit">
+                  <input class="form-control" @bind="editGroupNameValue" @bind:event="oninput" />
+                  <div class="manage-device-actions">
+                    <button class="btn btn-primary"
+                            @onclick="() => SubmitEditGroup(group.Name)"
+                            disabled="@(isSubmittingGroup || string.IsNullOrWhiteSpace(editGroupNameValue))">Save</button>
+                    <button class="btn btn-secondary" @onclick="CancelEditGroup" disabled="@isSubmittingGroup">Cancel</button>
+                  </div>
+                </div>
+              }
+              else
+              {
+                <div class="manage-device-info">
+                  <span class="device-friendly-name">@group.Name</span>
+                  <span class="device-id-small">@group.Devices.Count device(s)</span>
+                </div>
+                <div class="manage-device-actions">
+                  <button class="btn btn-secondary" @onclick="() => StartEditGroup(group.Name)" disabled="@isSubmittingGroup">Edit</button>
+                  <button class="btn btn-danger" @onclick="() => DeleteGroup(group.Name)" disabled="@isSubmittingGroup">Delete</button>
+                </div>
+                  <select class="form-control" @bind="selectedDeviceId">
+                    <option value="">-- Select device --</option>
+                      @if (devices != null)
+                      {
+                        @foreach (var d in devices)
+                          {
+                              <option value="@d.DeviceId">@d.FriendlyName</option>
+                          }
+                      }
+                    </select>
+                    <button class="btn btn-primary"
+                            @onclick="() => AddDeviceToGroup(group.Name)"
+                            disabled="@(isSubmittingGroup || string.IsNullOrWhiteSpace(selectedDeviceId))">
+                    Add Device
+                  </button>
+              }
+            </div>
+          }
+        </div>
+
+        <div class="manage-device-item" style="margin-top:1rem;">
+          <input class="form-control" placeholder="New group name" @bind="newGroupName" @bind:event="oninput" />
+          <div class="manage-device-actions">
+            <button class="btn btn-primary"
+                    @onclick="SubmitCreateGroup"
+                    disabled="@(isSubmittingGroup || string.IsNullOrWhiteSpace(newGroupName))">Create Group</button>
+          </div>
+        </div>
+      }
+
+      @if (!string.IsNullOrWhiteSpace(groupErrorMessage))
+      {
+        <div class="add-device-error">@groupErrorMessage</div>
+      }
+
+      <div class="add-device-actions">
+        <button class="btn btn-secondary" @onclick="CloseManageGroups">Close</button>
+      </div>
+    </div>
+  </div>
+}
+
 @code {
   private bool showAddDevice;
   private string? pendingDeviceId;
@@ -215,6 +297,17 @@ else
   private List<DeviceGroup> groups = new List<DeviceGroup>();
   private int activeDeviceCount;
   private double? averageTemperature;
+
+  // Manage groups
+private bool showManageGroups;
+private bool isLoadingGroups;
+private List<DeviceGroup> managedGroups = new();
+private string? editingGroupName;
+private string editGroupNameValue = "";
+private string newGroupName = "";
+private string? groupErrorMessage;
+private bool isSubmittingGroup;
+private string selectedDeviceId = "";
 
   private static readonly (string Icon, string Label, Func<SensorReading?, string> Format)[] SensorDefinitions =
   {
@@ -434,4 +527,171 @@ else
     PendingDeviceStore.Changed -= HandlePendingChanged;
     http?.Dispose();
   }
+
+  private async Task OpenManageGroups()
+{
+    showManageGroups = true;
+    groupErrorMessage = null;
+    editingGroupName = null;
+    newGroupName = "";
+    await LoadGroupsForManage();
+    await LoadDevices();
+}
+
+private void CloseManageGroups()
+{
+  showManageGroups = false;
+  groupErrorMessage = null;
+  editingGroupName = null;
+  editGroupNameValue = "";
+  newGroupName = "";
+}
+
+private async Task LoadGroupsForManage()
+{
+  isLoadingGroups = true;
+  try
+  {
+    managedGroups = await DeviceFunctions.GetDeviceGroupsAsync();
+  }
+  catch (Exception ex)
+  {
+    groupErrorMessage = ex.Message;
+  }
+  finally
+  {
+    isLoadingGroups = false;
+  }
+}
+
+private void StartEditGroup(string groupName)
+{
+  editingGroupName = groupName;
+  editGroupNameValue = groupName;
+  groupErrorMessage = null;
+}
+
+private void CancelEditGroup()
+{
+  editingGroupName = null;
+  editGroupNameValue = "";
+}
+
+private async Task SubmitEditGroup(string oldName)
+{
+  isSubmittingGroup = true;
+  groupErrorMessage = null;
+  try
+  {
+    GroupEditRequest? request = new GroupEditRequest { GroupName = oldName, NewGroupName = editGroupNameValue.Trim() };
+    var (success, message) = await DeviceFunctions.EditGroupAsync(request);
+    if(success)
+    {
+      editingGroupName = null;
+      editGroupNameValue = "";
+      await LoadGroupsForManage();
+      await LoadDashboardDataAsync();
+    }
+    else
+    {
+      groupErrorMessage = message;
+    }
+  }
+  catch(Exception ex)
+  {
+    groupErrorMessage = ex.Message;
+  }
+  finally
+  {
+    isSubmittingGroup = false;
+  }
+}
+
+private async Task DeleteGroup(string groupName)
+{
+  isSubmittingGroup = true;
+  groupErrorMessage = null;
+  try
+  {
+    var (success, message) = await DeviceFunctions.DeleteGroupAsync(groupName);
+    if (success)
+    {
+      await LoadGroupsForManage();
+      await LoadDashboardDataAsync();
+    }
+    else
+    {
+      groupErrorMessage = message;
+    }
+  }
+  catch(Exception ex)
+  {
+    groupErrorMessage = ex.Message;
+  }
+  finally
+  {
+    isSubmittingGroup = false;
+  }
+}
+
+private async Task SubmitCreateGroup()
+{
+  isSubmittingGroup = true;
+  groupErrorMessage = null;
+  try
+  {
+    GroupCreateRequest? request = new GroupCreateRequest { GroupName = newGroupName.Trim() };
+    var (success, message) = await DeviceFunctions.CreateGroupAsync(request);
+    if(success)
+    {
+      newGroupName = "";
+      await LoadGroupsForManage();
+      await LoadDashboardDataAsync();
+    }
+    else
+    {
+      groupErrorMessage = message;
+    }
+  }
+  catch (Exception ex)
+  {
+    groupErrorMessage = ex.Message;
+  }
+  finally
+  {
+    isSubmittingGroup = false;
+  }
+}
+
+private async Task AddDeviceToGroup(string groupName)
+{
+  isSubmittingGroup = true;
+  groupErrorMessage = null;
+
+  try
+  {
+    GroupAddDeviceRequest? request = new GroupAddDeviceRequest { GroupName = groupName, DeviceId = selectedDeviceId };
+    var (success, message) = await DeviceFunctions.AddDeviceToGroupAsync(request);
+
+    if(success)
+    {
+      selectedDeviceId = "";
+      await LoadGroupsForManage();
+      await LoadDashboardDataAsync();
+
+    }
+    else
+    {
+      groupErrorMessage = message;
+    }
+  }
+  catch (Exception ex)
+  {
+    groupErrorMessage = ex.Message;
+  }
+  finally
+  {
+    isSubmittingGroup = false;
+  }
+}
 }

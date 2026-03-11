@@ -242,5 +242,60 @@ public sealed class DeviceFunctions
 
         return (false, "failed to update device delete state");
     }
+
+public async Task<(bool Success, string Message)> CreateGroupAsync(GroupCreateRequest request)    
+{
+    if (string.IsNullOrWhiteSpace(request.GroupName))
+      return (false, "Group name is required ");
+
+    using HttpResponseMessage response = await _httpClient.PostAsJsonAsync("Group/create", request);
+    string result = await response.Content.ReadAsStringAsync();
+
+    return response.IsSuccessStatusCode
+    ? (true, result)
+    : (false, "Failed to create group"); 
   }
+  public async Task<(bool Success, string Message)> EditGroupAsync(GroupEditRequest request)
+  {
+    if (string.IsNullOrWhiteSpace(request.GroupName) || string.IsNullOrWhiteSpace(request.NewGroupName))
+      return (false, "Group names are required");
+
+      using HttpResponseMessage response = await _httpClient.PutAsJsonAsync("Group/edit", request);
+      string result = await response.Content.ReadAsStringAsync();
+
+      return response.IsSuccessStatusCode
+      ? (true, result)
+      : (false, "Failed to edit group");
+  }
+
+  public async Task<(bool Success, string Message)> DeleteGroupAsync (string groupName)
+  {
+    if (string.IsNullOrWhiteSpace(groupName))
+      return (false, "Groupd name is required");
+
+    string encoded = Uri.EscapeDataString(groupName);
+    using HttpResponseMessage response = await _httpClient.DeleteAsync($"Group/delete/{encoded}");
+    string result = await response.Content.ReadAsStringAsync();
+
+    return response.IsSuccessStatusCode
+    ? (true, result)
+    : (false, "Failed to delete group");
+  }
+
+  public async Task<(bool Success, string Message)> AddDeviceToGroupAsync(GroupAddDeviceRequest request)
+  {
+    if (string.IsNullOrWhiteSpace(request.GroupName) || string.IsNullOrWhiteSpace(request.DeviceId))
+      return (false, "Group name and device id are required");
+    
+    using HttpResponseMessage response = await _httpClient.PostAsJsonAsync("Group/addDevice", request);
+    string result = await response.Content.ReadAsStringAsync();
+
+    return response.IsSuccessStatusCode
+    ? (true, result)
+    : (false, "Failed to add device to group");
+  }
+}
+
+
+  
 

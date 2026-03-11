@@ -101,3 +101,29 @@ public class PaginatedSensorResponse
   [JsonPropertyName("items")]
   public List<SensorReading> Data { get; set; } = new();
 }
+
+
+//Group add/edit/delete and such...
+public sealed class GroupCreateRequest
+{
+  [JsonPropertyName("groupName")]
+  public string GroupName { get; set; } = string.Empty;
+}
+
+public sealed class GroupEditRequest
+{
+  [JsonPropertyName("groupName")]
+  public string GroupName { get; set; } = string.Empty;
+
+  [JsonPropertyName("newName")]
+  public string NewGroupName { get; set;} = string.Empty;
+}
+
+public sealed class GroupAddDeviceRequest
+{
+  [JsonPropertyName("groupName")]
+  public string GroupName { get; set; } = string.Empty;
+
+  [JsonPropertyName("deviceId")]
+  public string DeviceId { get; set; } = string.Empty;
+}
