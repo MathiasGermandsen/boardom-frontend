@@ -1,9 +1,9 @@
 using Newtonsoft.Json;
 using Boardom.Models;
 using System.Security.Cryptography;
-using System.Text.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
+using System.Text;
 using Microsoft.AspNetCore.DataProtection.KeyManagement;
 
 namespace Boardom.Services;
@@ -188,10 +188,13 @@ public sealed class DeviceFunctions
         if (string.IsNullOrWhiteSpace(request.FriendlyName))
             return (false, "Friendly name is required"); 
 
-        _logger.LogInformation("[DEBUG] EditDevice request: DeviceId={DeviceId}, FriendlyName={friendlyName}",
+        _logger.LogInformation("[DEBUG] EditDevice request: DeviceId: {DeviceId}, FriendlyName: {friendlyName}",
         request.DeviceId, request.FriendlyName);
 
-        using HttpResponseMessage response = await _httpClient.PutAsJsonAsync("Device/edit", request);
+        string json = JsonConvert.SerializeObject(request);
+        StringContent content = new StringContent(json, Encoding.UTF8, "application/json");
+
+        HttpResponseMessage response = await _httpClient.PutAsync("Device/edit", content);
         string result = await response.Content.ReadAsStringAsync();
 
         _logger.LogInformation("[DEBUG] EditDevice response: Status={Status}, Body={Body}", 
@@ -209,7 +212,7 @@ public sealed class DeviceFunctions
             return (false, "Device ID is required");
         
         string encodedDeviceId = Uri.EscapeDataString(request.DeviceId);
-        using HttpResponseMessage response = await _httpClient.PostAsJsonAsync($"Device/delete/{encodedDeviceId}", new{IsActive = request.IsActive});
+        using HttpResponseMessage response = await _httpClient.DeleteAsync($"Device/{encodedDeviceId}");
         string result = await response.Content.ReadAsStringAsync();
 
         if (response.IsSuccessStatusCode)
