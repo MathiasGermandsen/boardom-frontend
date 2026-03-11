@@ -171,7 +171,7 @@
 </div>
 
 @code {
-  private List<Device> devices = new();
+  private List<Device>? devices = new();
   private bool isLoading = true;
 
   private static readonly (string Icon, string Label, Func<SensorReading?, string> Format)[] SensorDefinitions =
@@ -194,12 +194,16 @@
     {
       devices = await DeviceService.GetAllDevicesAsync();
 
-      IEnumerable<Task>? tasks = devices.Select(async d =>
+      IEnumerable<Task>? tasks = devices?.Select(async d =>
       {
         d.LatestReading = await DeviceService.GetLatestSensorDataAsync(d.DeviceId);
       });
 
-      await Task.WhenAll(tasks);
+      if (tasks!.Count() != 0)
+      {
+          await Task.WhenAll(tasks!);
+
+      }
     }
     finally
     {

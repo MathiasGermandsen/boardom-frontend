@@ -65,7 +65,10 @@ public sealed class DeviceFunctions
     try
     {
       string raw = await _httpClient.GetStringAsync("Group/getAll");
-      return JsonConvert.DeserializeObject<List<DeviceGroup>>(raw);
+
+      List<DeviceGroup> groupList = JsonConvert.DeserializeObject<List<DeviceGroup>>(raw) ?? new List<DeviceGroup>();
+
+      return groupList;
     }
     catch (Exception ex)
     {
@@ -79,7 +82,10 @@ public sealed class DeviceFunctions
     try
     {
       string raw = await _httpClient.GetStringAsync("Device/getAll");
-      return JsonConvert.DeserializeObject<List<Device>>(raw);
+
+      List<Device> devList = JsonConvert.DeserializeObject<List<Device>>(raw) ?? new List<Device>();
+
+      return devList!;
     }
     catch (Exception ex)
     {
@@ -89,12 +95,12 @@ public sealed class DeviceFunctions
   }
 
 
-  public async Task<List<SensorReading>?> GetFilteredSensorDataAsync(string deviceId, string dataType, DateTime startDate, DateTime endDate, int page)
+  public async Task<List<SensorReading>> GetFilteredSensorDataAsync(string deviceId, string dataType, DateTime startDate, DateTime endDate, int page)
   {
     if (string.IsNullOrWhiteSpace(deviceId))
     {
       _logger.LogWarning("[DEBUG] GetFilteredSensorDataAsync called with empty deviceId");
-      return null;
+      return new List<SensorReading>();
     }
 
     try
@@ -109,13 +115,13 @@ public sealed class DeviceFunctions
       HttpResponseMessage response = await _httpClient.GetAsync(url);
       string raw = await response.Content.ReadAsStringAsync();
 
-      if (!response.IsSuccessStatusCode) return null;
+      if (!response.IsSuccessStatusCode) return new List<SensorReading>();
 
-      SensorDataResponse res = JsonConvert.DeserializeObject<SensorDataResponse>(raw);
-      
-      if (res.Data.Count > 0)
+      SensorDataResponse res = JsonConvert.DeserializeObject<SensorDataResponse>(raw) ?? new SensorDataResponse();
+
+      if (res.Data?.Count > 0)
       {
-        return res.Data;
+        return res.Data!;
       }
       else
       {
@@ -148,11 +154,11 @@ public sealed class DeviceFunctions
 
       if (!response.IsSuccessStatusCode) return null;
 
-      SensorDataResponse res = JsonConvert.DeserializeObject<SensorDataResponse>(raw);
+      SensorDataResponse res = JsonConvert.DeserializeObject<SensorDataResponse>(raw) ?? new SensorDataResponse();
 
-      if (res.Data.Count > 0)
+      if (res.Data?.Count > 0)
       {
-        return res.Data[0];
+        return res.Data![0];
       }
       else
       {
