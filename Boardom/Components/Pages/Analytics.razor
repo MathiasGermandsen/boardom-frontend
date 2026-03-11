@@ -263,20 +263,14 @@
         groupData.Clear();
         labels.Clear();
 
-        if (selectedDevice != null)
+        if (selectedDevice != null) // -------------- For a single device -------------- 
         {
-            // Single Device
             int currentPage = 1;
             List<SensorReading> allData = new List<SensorReading>();
 
             while (true)
             {
-                allData.AddRange(await DeviceFunctions.GetFilteredSensorDataAsync(
-                selectedDevice.DeviceId,
-                selectedDataType,
-                startDate,
-                endDate,
-                currentPage));
+                allData.AddRange(await DeviceFunctions.GetFilteredSensorDataAsync(selectedDevice.DeviceId, selectedDataType, startDate, endDate, currentPage));
                 
                 if (allData.Count < (100 * currentPage))
                 {
@@ -324,13 +318,10 @@
                 avgValue += dataObj.Data;
             }
 
-            avgValue = Math.Round(avgValue.Value / singleData.Count, 2);
-            
-
+            avgValue = Math.Round(avgValue!.Value / singleData.Count, 2);
         }
-        else if (selectedGroup != null)
+        else if (selectedGroup != null) // -------------- For a group -------------- 
         {
-            // Group logic
             int count = 0;
 
             foreach (Device device in selectedGroup.Devices)
@@ -368,7 +359,6 @@
 
                 if (allData == null || allData.Count == 0)
                 {
-                    // Just skip this device
                     continue;
                 }
 
@@ -406,7 +396,7 @@
                 }
             }
 
-            avgValue = Math.Round(avgValue.Value / count, 2);
+            avgValue = Math.Round(avgValue!.Value / count, 2);
         }
 
         noDataMessage = string.Empty;

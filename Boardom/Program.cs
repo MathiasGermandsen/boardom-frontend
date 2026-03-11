@@ -58,24 +58,30 @@ builder.Services.Configure<CookieAuthenticationOptions>(
 
 builder.Services.AddHttpClient("DatabaseApi", client =>
 {
-    client.BaseAddress = new Uri(builder.Configuration["ApiSettings:DatabaseApiUrl"]);
+    client.BaseAddress = new Uri(builder.Configuration["ApiSettings:DatabaseApiUrl"]!);
     client.Timeout = TimeSpan.FromSeconds(10);
 });
-string auth0Domain = builder.Configuration["Auth0:Domain"];
+
+string? auth0Domain = builder.Configuration["Auth0:Domain"];
+
 if (string.IsNullOrWhiteSpace(auth0Domain))
 {
     throw new InvalidOperationException("Auth0 configuration error: 'Auth0:Domain' is missing or empty.");
 }
-string auth0ClientId = builder.Configuration["Auth0:ClientId"];
+
+string? auth0ClientId = builder.Configuration["Auth0:ClientId"];
+
 if (string.IsNullOrWhiteSpace(auth0ClientId))
 {
     throw new InvalidOperationException("Auth0 configuration error: 'Auth0:ClientId' is missing or empty.");
 }
-string auth0ClientSecret = builder.Configuration["Auth0:ClientSecret"];
+string? auth0ClientSecret = builder.Configuration["Auth0:ClientSecret"];
+
 if (string.IsNullOrWhiteSpace(auth0ClientSecret))
 {
     throw new InvalidOperationException("Auth0 configuration error: 'Auth0:ClientSecret' is missing or empty.");
 }
+
 builder.Services.AddAuth0WebAppAuthentication(options =>
 {
     options.Domain = auth0Domain;
@@ -86,7 +92,7 @@ builder.Services.AddAuth0WebAppAuthentication(options =>
     {
         OnRemoteFailure = context =>
         {
-            if (context.Failure.Message != null &&
+            if (context.Failure!.Message != null &&
             context.Failure.Message.Contains("access_denied", StringComparison.OrdinalIgnoreCase))
             {
                 context.Response.Redirect("/");

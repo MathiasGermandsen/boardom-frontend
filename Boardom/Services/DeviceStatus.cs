@@ -42,8 +42,8 @@ public class DeviceStatus : BackgroundService
 
         string raw = await _httpClient.GetStringAsync("Device/getAll");
 
-        List<Device> allDevices = JsonConvert.DeserializeObject<List<Device>>(raw);
-
+        List<Device> allDevices = JsonConvert.DeserializeObject<List<Device>>(raw) ?? new List<Device>();
+        
         foreach (Device dev in allDevices)
         {
             bool online = DateTime.UtcNow - dev.LastHeartbeat <= TimeSpan.FromMinutes(4);
