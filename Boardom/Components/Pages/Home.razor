@@ -150,7 +150,7 @@ else
       else
       {
         <div class="manage-device-list">
-          @foreach (var device in devices)
+          @foreach (DeviceInfo device in devices)
           {
             <div class="manage-device-item">
               @if (editingDeviceId == device.DeviceId)
@@ -279,35 +279,39 @@ else
 }
 
 @code {
+  // --------------- Dashboard ---------------
+  private bool isLoading = true;
+  private bool isLoadingDevices;
+  private List<DeviceGroup> groups = new List<DeviceGroup>();
+  private List<DeviceInfo>? devices;
+  private List<string>? addedDeviceIds = new List<string>();
+  private int activeDeviceCount;
+  private double? averageTemperature;
+
+  // --------------- Add Device ---------------
   private bool showAddDevice;
   private string? pendingDeviceId;
   private string friendlyName = "";
   private string? errorMessage;
   private bool isSubmitting;
-  private HttpClient? http;
+  private bool CanSubmit => !isSubmitting && !string.IsNullOrWhiteSpace(pendingDeviceId) && !string.IsNullOrWhiteSpace(friendlyName);
 
+  // --------------- Manage Device ---------------
   private bool showManageDevices;
-  private bool isLoadingDevices;
-  private List<DeviceInfo>? devices;
   private string? editingDeviceId;
   private string editFriendlyName = "";
   private string? manageErrorMessage;
 
-  private bool isLoading = true;
-  private List<DeviceGroup> groups = new List<DeviceGroup>();
-  private int activeDeviceCount;
-  private double? averageTemperature;
-
-  // Manage groups
-private bool showManageGroups;
-private bool isLoadingGroups;
-private List<DeviceGroup> managedGroups = new();
-private string? editingGroupName;
-private string editGroupNameValue = "";
-private string newGroupName = "";
-private string? groupErrorMessage;
-private bool isSubmittingGroup;
-private string selectedDeviceId = "";
+  // --------------- Manage Groups ---------------
+  private bool showManageGroups;
+  private bool isLoadingGroups;
+  private List<DeviceGroup> managedGroups = new List<DeviceGroup>();
+  private string? editingGroupName;
+  private string editGroupNameValue = "";
+  private string newGroupName = "";
+  private string? groupErrorMessage;
+  private bool isSubmittingGroup;
+  private string selectedDeviceId = "";
 
   private static readonly (string Icon, string Label, Func<SensorReading?, string> Format)[] SensorDefinitions =
   {
@@ -319,7 +323,6 @@ private string selectedDeviceId = "";
 
   protected override async Task OnInitializedAsync()
   {
-    http = new HttpClient { BaseAddress = new Uri(NavigationManager.BaseUri) };
     PendingDeviceStore.Changed += HandlePendingChanged;
     pendingDeviceId = PendingDeviceStore.PendingDeviceId;
 
@@ -339,10 +342,17 @@ private string selectedDeviceId = "";
 
     foreach (Device dev in allGroupDevices)
     {
+      if (addedDeviceIds!.Contains(dev.DeviceId))
+      {
+        continue;
+      }
+
       if (DeviceStatus.StatusList[dev.DeviceId])
       {
         activeDeviceCount++;
       }
+
+      addedDeviceIds.Add(dev.DeviceId);
     }
 
     IEnumerable<Task>? sensorDataTask = allGroupDevices.Select(async device => {device.LatestReading = await DeviceFunctions.GetLatestSensorDataAsync(device.DeviceId);});
@@ -387,14 +397,9 @@ private string selectedDeviceId = "";
     showAddDevice = false;
   }
 
-  private bool CanSubmit =>
-      !isSubmitting &&
-      !string.IsNullOrWhiteSpace(pendingDeviceId) &&
-      !string.IsNullOrWhiteSpace(friendlyName);
-
   private async Task SubmitAddDevice()
   {
-    if (!CanSubmit || http is null) return;
+    if (!CanSubmit) return;
 
     isSubmitting = true;
     errorMessage = null;
@@ -528,7 +533,6 @@ private string selectedDeviceId = "";
   public void Dispose()
   {
     PendingDeviceStore.Changed -= HandlePendingChanged;
-    http?.Dispose();
   }
 
   private async Task OpenManageGroups()
