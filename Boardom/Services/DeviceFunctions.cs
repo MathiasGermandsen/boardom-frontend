@@ -226,6 +226,16 @@ public sealed class DeviceFunctions
       if (string.IsNullOrWhiteSpace(request.GroupName))
         return (false, "Group name is required ");
 
+      string json = JsonConvert.SerializeObject(request);
+      StringContent sContent = new StringContent(json, Encoding.UTF8, "application/json");
+
+      using HttpResponseMessage response = await _httpClient.PutAsync("Group/edit", sContent);
+      string result = await response.Content.ReadAsStringAsync();
+
+      return response.IsSuccessStatusCode
+        ? (true, result)
+        : (false, "Failed to edit group");
+  }
       using HttpResponseMessage response = await _httpClient.PostAsJsonAsync("Group/create", request);
       string result = await response.Content.ReadAsStringAsync();
 
@@ -252,12 +262,12 @@ public sealed class DeviceFunctions
       return (false, "Groupd name is required");
 
     string encoded = Uri.EscapeDataString(groupName);
-    using HttpResponseMessage response = await _httpClient.DeleteAsync($"Group/delete/{encoded}");
+    using HttpResponseMessage response = await _httpClient.DeleteAsync($"Group/{encoded}");
     string result = await response.Content.ReadAsStringAsync();
 
     return response.IsSuccessStatusCode
-    ? (true, result)
-    : (false, "Failed to delete group");
+      ? (true, result)
+      : (false, "Failed to delete group");
   }
 
   public async Task<(bool Success, string Message)> AddDeviceToGroupAsync(GroupAddDeviceRequest request)
@@ -269,7 +279,30 @@ public sealed class DeviceFunctions
     string result = await response.Content.ReadAsStringAsync();
 
     return response.IsSuccessStatusCode
-    ? (true, result)
-    : (false, "Failed to add device to group");
+      ? (true, result)
+      : (false, "Failed to add device to group");
   }
+
+  public async Task<(bool Success, string Message)> RemoveDeviceFromGroupAsync(GroupAddDeviceRequest request)
+  {
+    if (string.IsNullOrWhiteSpace(request.GroupName) || string.IsNullOrWhiteSpace(request.DeviceId))
+      return (false, "Group namde and device id are required");
+
+    var httpRequest = new HttpRequestMessage(HttpMethod.Delete, "Group/deleteFrom")
+    {
+      Content = JsonContent.Create(request)
+    };
+    using HttpResponseMessage response = await _httpClient.SendAsync(httpRequest);
+    string result = await response.Content.ReadAsStringAsync();
+
+    return response.IsSuccessStatusCode
+      ? (true, result)
+      : (false, "Failed to remove device from group");
+  }
+
+
 }
+
+
+  
+

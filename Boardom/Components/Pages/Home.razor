@@ -65,6 +65,7 @@ else
                   {
                     <span class="device-status offline">● Offline</span>
                   }
+                 <button class="btn btn-danger btn-sm" @onclick="() => PromptRemoveDeviceFromGroup(group.Name, device.DeviceId, device.Name)">✕</button>
                 </div>
                 <div class="sensor-data">
                   @{
@@ -236,7 +237,7 @@ else
                   <button class="btn btn-secondary" @onclick="() => StartEditGroup(group.Name)" disabled="@isSubmittingGroup">Edit</button>
                   <button class="btn btn-danger" @onclick="() => DeleteGroup(group.Name)" disabled="@isSubmittingGroup">Delete</button>
                 </div>
-                  <select class="form-control" @bind="selectedDeviceId">
+                  <select class="form-control" value="@(selectedDeviceIds.GetValueOrDefault(group.Name, ""))" @onchange="@(e => selectedDeviceIds[group.Name] = e.Value?.ToString() ?? string.Empty)">
                     <option value="">-- Select device --</option>
                       @if (devices != null)
                       {
@@ -248,7 +249,7 @@ else
                     </select>
                     <button class="btn btn-primary"
                             @onclick="() => AddDeviceToGroup(group.Name)"
-                            disabled="@(isSubmittingGroup || string.IsNullOrWhiteSpace(selectedDeviceId))">
+                            disabled="@(isSubmittingGroup || string.IsNullOrWhiteSpace(selectedDeviceIds.GetValueOrDefault(group.Name)))">
                     Add Device
                   </button>
               }
@@ -265,7 +266,6 @@ else
           </div>
         </div>
       }
-
       @if (!string.IsNullOrWhiteSpace(groupErrorMessage))
       {
         <div class="add-device-error">@groupErrorMessage</div>
@@ -278,8 +278,25 @@ else
   </div>
 }
 
+@if (showConfirmRemove)
+        {
+          <div class="add-device-overlay">
+            <div class="add-device-modal" @onclick:stopPropagation="true">
+              <h1 class="add-device-title">REMOVE DEVICE</h1>
+              <p style="color:#e8eef7;margin-bottom:1.5rem;">
+                Remove <strong>@confirmRemoveDeviceName</strong> from this group?
+              </p>
+              <div class="add-device-actions">
+                <button class="btn btn-secondary" @onclick="CancelRemoveDeviceFromGroup">Cancel</button>
+                <button class="btn btn-danger" @onclick="ConfirmRemoveDeviceFromGroup">Remove</button>
+              </div>
+            </div>
+          </div>
+        }
+
 @code {
-  // --------------- Dashboard ---------------
+
+// --------------- Dashboard ---------------
   private bool isLoading = true;
   private bool isLoadingDevices;
   private List<DeviceGroup> groups = new List<DeviceGroup>();
@@ -312,6 +329,13 @@ else
   private string? groupErrorMessage;
   private bool isSubmittingGroup;
   private string selectedDeviceId = "";
+
+
+// remove from group confirmation pop up
+private bool showConfirmRemove;
+private string confirmRemoveGroupName = "";
+private string confirmRemoveDeviceId = "";
+private string confirmRemoveDeviceName = "";
 
   private static readonly (string Icon, string Label, Func<SensorReading?, string> Format)[] SensorDefinitions =
   {
@@ -677,12 +701,13 @@ private async Task AddDeviceToGroup(string groupName)
 
   try
   {
-    GroupAddDeviceRequest? request = new GroupAddDeviceRequest { GroupName = groupName, DeviceId = selectedDeviceId };
+    string deviceId = selectedDeviceIds.GetValueOrDefault(groupName,"");
+    GroupAddDeviceRequest? request = new GroupAddDeviceRequest { GroupName = groupName, DeviceId = deviceId };
     var (success, message) = await DeviceFunctions.AddDeviceToGroupAsync(request);
 
     if(success)
     {
-      selectedDeviceId = "";
+      selectedDeviceIds.Remove(groupName);
       await LoadGroupsForManage();
       await LoadDashboardDataAsync();
 
@@ -699,6 +724,49 @@ private async Task AddDeviceToGroup(string groupName)
   finally
   {
     isSubmittingGroup = false;
+  }
+}
+
+private void PromptRemoveDeviceFromGroup(string groupName, string deviceId, string deviceName)
+{
+  confirmRemoveGroupName = groupName;
+  confirmRemoveDeviceId = deviceId;
+  confirmRemoveDeviceName = deviceName;
+  showConfirmRemove = true;
+}
+
+private void CancelRemoveDeviceFromGroup()
+{
+  showConfirmRemove = false;
+  confirmRemoveGroupName = "";
+  confirmRemoveDeviceName = "";
+  confirmRemoveDeviceId = "";
+}
+
+private async Task ConfirmRemoveDeviceFromGroup()
+{
+  showConfirmRemove = false;
+  await RemoveDeviceFromGroup(confirmRemoveGroupName, confirmRemoveDeviceId);
+  confirmRemoveGroupName = "";
+  confirmRemoveDeviceId = "";
+  confirmRemoveDeviceName = "";
+}
+
+private async Task RemoveDeviceFromGroup(string groupName, string deviceId)
+{
+  try
+  {
+    GroupAddDeviceRequest? request = new GroupAddDeviceRequest { GroupName = groupName, DeviceId = deviceId };
+    var (success, message) = await DeviceFunctions.RemoveDeviceFromGroupAsync(request);
+    
+    if(success)
+    {
+      await LoadDashboardDataAsync();
+    }
+  }
+  catch(Exception ex)
+  {
+    _=ex;
   }
 }
 }
