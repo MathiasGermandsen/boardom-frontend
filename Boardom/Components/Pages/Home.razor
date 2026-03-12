@@ -289,6 +289,7 @@ else
   private bool showManageDevices;
   private bool isLoadingDevices;
   private List<DeviceInfo>? devices;
+  private List<string>? addedDeviceIds = new List<string>();
   private string? editingDeviceId;
   private string editFriendlyName = "";
   private string? manageErrorMessage;
@@ -299,15 +300,15 @@ else
   private double? averageTemperature;
 
   // Manage groups
-private bool showManageGroups;
-private bool isLoadingGroups;
-private List<DeviceGroup> managedGroups = new();
-private string? editingGroupName;
-private string editGroupNameValue = "";
-private string newGroupName = "";
-private string? groupErrorMessage;
-private bool isSubmittingGroup;
-private string selectedDeviceId = "";
+  private bool showManageGroups;
+  private bool isLoadingGroups;
+  private List<DeviceGroup> managedGroups = new();
+  private string? editingGroupName;
+  private string editGroupNameValue = "";
+  private string newGroupName = "";
+  private string? groupErrorMessage;
+  private bool isSubmittingGroup;
+  private string selectedDeviceId = "";
 
   private static readonly (string Icon, string Label, Func<SensorReading?, string> Format)[] SensorDefinitions =
   {
@@ -339,10 +340,17 @@ private string selectedDeviceId = "";
 
     foreach (Device dev in allGroupDevices)
     {
+      if (addedDeviceIds!.Contains(dev.DeviceId))
+      {
+        continue;
+      }
+
       if (DeviceStatus.StatusList[dev.DeviceId])
       {
         activeDeviceCount++;
       }
+
+      addedDeviceIds.Add(dev.DeviceId);
     }
 
     IEnumerable<Task>? sensorDataTask = allGroupDevices.Select(async device => {device.LatestReading = await DeviceFunctions.GetLatestSensorDataAsync(device.DeviceId);});

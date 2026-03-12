@@ -173,78 +173,78 @@ public sealed class DeviceFunctions
     return new SensorReading();
   }
 
-    public async Task<List<DeviceInfo>> GetDevicesAsync()
-    {
-        using HttpResponseMessage response = await _httpClient.GetAsync("Device/getAll");
-        response.EnsureSuccessStatusCode();
-        return await response.Content.ReadFromJsonAsync<List<DeviceInfo>>() ?? new();
-    }
-
-    public async Task<(bool success, string Message)> EditDeviceAsync(DeviceEditRequest request)
-    {
-        if (request == null || string.IsNullOrWhiteSpace(request.DeviceId))
-            return (false, "Device ID is required");
-
-        if (string.IsNullOrWhiteSpace(request.FriendlyName))
-            return (false, "Friendly name is required"); 
-
-        _logger.LogInformation("[DEBUG] EditDevice request: DeviceId: {DeviceId}, FriendlyName: {friendlyName}",
-        request.DeviceId, request.FriendlyName);
-
-        string json = JsonConvert.SerializeObject(request);
-        StringContent content = new StringContent(json, Encoding.UTF8, "application/json");
-
-        HttpResponseMessage response = await _httpClient.PutAsync("Device/edit", content);
-        string result = await response.Content.ReadAsStringAsync();
-
-        _logger.LogInformation("[DEBUG] EditDevice response: Status={Status}, Body={Body}", 
-            response.StatusCode, result);
-
-        if (response.IsSuccessStatusCode)
-            return (true, result);
-
-        return (false, "Failed to edit device");
-    }
-
-    public async Task<(bool Success, string Message)> SetDeviceActiveAsync(DeviceDeleteRequest request)
-    {
-        if (request == null || string.IsNullOrWhiteSpace(request.DeviceId))
-            return (false, "Device ID is required");
-        
-        string encodedDeviceId = Uri.EscapeDataString(request.DeviceId);
-        using HttpResponseMessage response = await _httpClient.DeleteAsync($"Device/{encodedDeviceId}");
-        string result = await response.Content.ReadAsStringAsync();
-
-        if (response.IsSuccessStatusCode)
-            return (true, result);
-
-        return (false, "failed to update device delete state");
-    }
-
-public async Task<(bool Success, string Message)> CreateGroupAsync(GroupCreateRequest request)    
-{
-    if (string.IsNullOrWhiteSpace(request.GroupName))
-      return (false, "Group name is required ");
-
-    using HttpResponseMessage response = await _httpClient.PostAsJsonAsync("Group/create", request);
-    string result = await response.Content.ReadAsStringAsync();
-
-    return response.IsSuccessStatusCode
-    ? (true, result)
-    : (false, "Failed to create group"); 
-  }
-  public async Task<(bool Success, string Message)> EditGroupAsync(GroupEditRequest request)
+  public async Task<List<DeviceInfo>> GetDevicesAsync()
   {
-    if (string.IsNullOrWhiteSpace(request.GroupName) || string.IsNullOrWhiteSpace(request.NewGroupName))
-      return (false, "Group names are required");
+      using HttpResponseMessage response = await _httpClient.GetAsync("Device/getAll");
+      response.EnsureSuccessStatusCode();
+      return await response.Content.ReadFromJsonAsync<List<DeviceInfo>>() ?? new();
+  }
 
-      using HttpResponseMessage response = await _httpClient.PutAsJsonAsync("Group/edit", request);
+  public async Task<(bool success, string Message)> EditDeviceAsync(DeviceEditRequest request)
+  {
+      if (request == null || string.IsNullOrWhiteSpace(request.DeviceId))
+          return (false, "Device ID is required");
+
+      if (string.IsNullOrWhiteSpace(request.FriendlyName))
+          return (false, "Friendly name is required"); 
+
+      _logger.LogInformation("[DEBUG] EditDevice request: DeviceId: {DeviceId}, FriendlyName: {friendlyName}",
+      request.DeviceId, request.FriendlyName);
+
+      string json = JsonConvert.SerializeObject(request);
+      StringContent content = new StringContent(json, Encoding.UTF8, "application/json");
+
+      HttpResponseMessage response = await _httpClient.PutAsync("Device/edit", content);
+      string result = await response.Content.ReadAsStringAsync();
+
+      _logger.LogInformation("[DEBUG] EditDevice response: Status={Status}, Body={Body}", 
+          response.StatusCode, result);
+
+      if (response.IsSuccessStatusCode)
+          return (true, result);
+
+      return (false, "Failed to edit device");
+  }
+
+  public async Task<(bool Success, string Message)> SetDeviceActiveAsync(DeviceDeleteRequest request)
+  {
+      if (request == null || string.IsNullOrWhiteSpace(request.DeviceId))
+          return (false, "Device ID is required");
+      
+      string encodedDeviceId = Uri.EscapeDataString(request.DeviceId);
+      using HttpResponseMessage response = await _httpClient.DeleteAsync($"Device/{encodedDeviceId}");
+      string result = await response.Content.ReadAsStringAsync();
+
+      if (response.IsSuccessStatusCode)
+          return (true, result);
+
+      return (false, "failed to update device delete state");
+  }
+
+  public async Task<(bool Success, string Message)> CreateGroupAsync(GroupCreateRequest request)    
+  {
+      if (string.IsNullOrWhiteSpace(request.GroupName))
+        return (false, "Group name is required ");
+
+      using HttpResponseMessage response = await _httpClient.PostAsJsonAsync("Group/create", request);
       string result = await response.Content.ReadAsStringAsync();
 
       return response.IsSuccessStatusCode
       ? (true, result)
-      : (false, "Failed to edit group");
-  }
+      : (false, "Failed to create group"); 
+    }
+    public async Task<(bool Success, string Message)> EditGroupAsync(GroupEditRequest request)
+    {
+      if (string.IsNullOrWhiteSpace(request.GroupName) || string.IsNullOrWhiteSpace(request.NewGroupName))
+        return (false, "Group names are required");
+
+        using HttpResponseMessage response = await _httpClient.PutAsJsonAsync("Group/edit", request);
+        string result = await response.Content.ReadAsStringAsync();
+
+        return response.IsSuccessStatusCode
+        ? (true, result)
+        : (false, "Failed to edit group");
+    }
 
   public async Task<(bool Success, string Message)> DeleteGroupAsync (string groupName)
   {
@@ -273,7 +273,3 @@ public async Task<(bool Success, string Message)> CreateGroupAsync(GroupCreateRe
     : (false, "Failed to add device to group");
   }
 }
-
-
-  
-
