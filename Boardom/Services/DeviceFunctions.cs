@@ -229,26 +229,23 @@ public sealed class DeviceFunctions
       string json = JsonConvert.SerializeObject(request);
       StringContent sContent = new StringContent(json, Encoding.UTF8, "application/json");
 
-      using HttpResponseMessage response = await _httpClient.PutAsync("Group/edit", sContent);
+      using HttpResponseMessage response = await _httpClient.PostAsync("Group/create", sContent);
       string result = await response.Content.ReadAsStringAsync();
 
       return response.IsSuccessStatusCode
         ? (true, result)
         : (false, "Failed to edit group");
-  }
-      using HttpResponseMessage response = await _httpClient.PostAsJsonAsync("Group/create", request);
-      string result = await response.Content.ReadAsStringAsync();
-
-      return response.IsSuccessStatusCode
-      ? (true, result)
-      : (false, "Failed to create group"); 
     }
+    
     public async Task<(bool Success, string Message)> EditGroupAsync(GroupEditRequest request)
     {
       if (string.IsNullOrWhiteSpace(request.GroupName) || string.IsNullOrWhiteSpace(request.NewGroupName))
         return (false, "Group names are required");
 
-        using HttpResponseMessage response = await _httpClient.PutAsJsonAsync("Group/edit", request);
+        string json = JsonConvert.SerializeObject(request);
+        StringContent sContent = new StringContent(json, Encoding.UTF8, "application/json");
+
+        using HttpResponseMessage response = await _httpClient.PutAsync("Group/edit", sContent);
         string result = await response.Content.ReadAsStringAsync();
 
         return response.IsSuccessStatusCode
