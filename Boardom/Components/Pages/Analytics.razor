@@ -106,16 +106,8 @@
 
             <div class="control-group">
                 <label class="control-label">Data Thinning Factor</label>
-                <select class="form-control analytics-select" @bind="thinningFactor">
-                    <option value="1">1</option>
-                    <option value="2">2</option>
-                    <option value="3">3</option>
-                    <option value="4">4</option>
-                    <option value="5">5</option>
-                    <option value="6">6</option>
-                    <option value="7">7</option>
-                    <option value="8">8</option>
-                </select>
+                <input type="number" class="form-control analytics-date" @bind="thinningFactor" min="1" max="150"/>
+                <p class="control-hint">Will not be applied, if there are less datapoints than thinningfactor</p>
             </div>
 
             <div class="control-actions">
@@ -203,13 +195,13 @@
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
-{
-    if (shouldRenderChart)
     {
-        shouldRenderChart = false;
-        await JS.InvokeVoidAsync("renderLineChart", pendingDatasets);
+        if (shouldRenderChart)
+        {
+            shouldRenderChart = false;
+            await JS.InvokeVoidAsync("renderLineChart", pendingDatasets);
+        }
     }
-}
 
     private void CancelSelection()
     {

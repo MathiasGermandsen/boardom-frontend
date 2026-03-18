@@ -287,6 +287,14 @@
     margin-bottom: 0.5rem;
 }
 
+.control-hint {
+    font-size: 0.75rem;
+    color: #7a8fa3;
+    margin-top: 0.4rem;
+    margin-bottom: 0;
+    letter-spacing: 0.1px;
+}
+
 .analytics-select,
 .analytics-date {
     width: 100%;
