@@ -1,0 +1,245 @@
+/* ===== Power Container ===== */
+.power-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.power-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 3rem;
+  animation: fadeInDown 0.6s ease-out;
+}
+
+.power-title {
+  font-size: 2.8rem;
+  color: #e8eef7;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+  margin: 0 0 0.5rem 0;
+}
+
+.power-subtitle {
+  font-size: 0.95rem;
+  color: #b0b9c3;
+  letter-spacing: 0.3px;
+  margin: 0;
+}
+
+/* ===== Power Content ===== */
+.power-content {
+  animation: fadeInUp 0.6s ease-out 0.1s backwards;
+}
+
+/* ===== Settings Form ===== */
+.settings-form {
+  background: rgba(26, 35, 50, 0.5);
+  border: 1px solid rgba(59, 125, 217, 0.2);
+  border-radius: 12px;
+  padding: 2rem;
+  backdrop-filter: blur(10px);
+}
+
+.form-section {
+  margin-bottom: 2.5rem;
+}
+
+.form-section:last-of-type {
+  margin-bottom: 2rem;
+}
+
+.form-label {
+  display: block;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #e8eef7;
+  margin-bottom: 0.75rem;
+  letter-spacing: 0.2px;
+}
+
+.form-hint {
+  font-size: 0.85rem;
+  color: #7a8fa3;
+  margin-top: 0.5rem;
+  margin-bottom: 1rem;
+  letter-spacing: 0.1px;
+}
+
+/* ===== Price Input ===== */
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.price-input {
+  width: 100%;
+  padding: 0.85rem 3.5rem 0.85rem 1rem;
+  background: rgba(15, 20, 25, 0.6);
+  border: 1px solid rgba(59, 125, 217, 0.25);
+  border-radius: 8px;
+  font-size: 1rem;
+  color: #e8eef7;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  transition: all 0.2s ease;
+  letter-spacing: 0.2px;
+}
+
+.price-input:focus {
+  outline: none;
+  border-color: #3b7dd9;
+  background: rgba(15, 20, 25, 0.9);
+  box-shadow: 0 0 0 3px rgba(59, 125, 217, 0.1);
+}
+
+.price-input::placeholder {
+  color: #546e7a;
+}
+
+.input-suffix {
+  position: absolute;
+  right: 1rem;
+  color: #7a8fa3;
+  font-weight: 600;
+  font-size: 0.9rem;
+  pointer-events: none;
+}
+
+/* ===== Company Dropdown ===== */
+.company-dropdown {
+  width: 100%;
+  padding: 0.85rem 1rem;
+  background: rgba(15, 20, 25, 0.6);
+  border: 1px solid rgba(59, 125, 217, 0.25);
+  border-radius: 8px;
+  font-size: 1rem;
+  color: #e8eef7;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  transition: all 0.2s ease;
+  letter-spacing: 0.2px;
+  cursor: pointer;
+}
+
+.company-dropdown:focus {
+  outline: none;
+  border-color: #3b7dd9;
+  background: rgba(15, 20, 25, 0.9);
+  box-shadow: 0 0 0 3px rgba(59, 125, 217, 0.1);
+}
+
+.company-dropdown option {
+  background: #1a2332;
+  color: #e8eef7;
+  padding: 0.5rem;
+}
+
+/* ===== Form Actions ===== */
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2.5rem;
+  padding-top: 2rem;
+  border-top: 1px solid rgba(59, 125, 217, 0.15);
+}
+
+.btn-primary,
+.btn-secondary {
+  flex: 1;
+  padding: 0.85rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  letter-spacing: 0.3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.button-content {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.feedback-icon {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.feedback-icon.error {
+  color: #ff6b6b;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #3b7dd9 0%, #2c5aa0 100%);
+  color: #ffffff;
+  border: 1px solid rgba(59, 125, 217, 0.5);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #4a8ae6 0%, #3863b0 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 125, 217, 0.3);
+}
+
+.btn-primary:disabled {
+  opacity: 0.9;
+  cursor: not-allowed;
+}
+
+.btn-primary.btn-success {
+  background: linear-gradient(135deg, #51cf66 0%, #37b24d 100%);
+  border-color: rgba(81, 207, 102, 0.5);
+}
+
+.btn-primary.btn-error {
+  background: linear-gradient(135deg, #ff6b6b 0%, #d63031 100%);
+  border-color: rgba(255, 107, 107, 0.5);
+}
+
+.btn-secondary {
+  background: rgba(59, 125, 217, 0.15);
+  color: #3b7dd9;
+  border: 1px solid rgba(59, 125, 217, 0.3);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: rgba(59, 125, 217, 0.25);
+  border-color: #3b7dd9;
+  transform: translateY(-1px);
+}
+
+.btn-secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 640px) {
+  .power-container {
+    padding: 1.5rem 0.75rem;
+  }
+
+  .power-title {
+    font-size: 2rem;
+  }
+
+  .settings-form {
+    padding: 1.5rem;
+  }
+
+  .form-actions {
+    flex-direction: column;
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    width: 100%;
+  }
+}

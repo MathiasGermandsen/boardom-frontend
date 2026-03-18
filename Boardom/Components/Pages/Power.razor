@@ -1,0 +1,118 @@
+@page "/power"
+@using Boardom.Services
+@inject PowerService PowerService
+
+<PageTitle>Power Settings - BOARDOM</PageTitle>
+
+<div class="power-container">
+  <div class="power-header">
+    <div>
+      <h1 class="power-title">Power Settings</h1>
+      <p class="power-subtitle">Configure energy pricing and provider preferences</p>
+    </div>
+  </div>
+
+  <div class="power-content">
+    <div class="settings-form">
+      <!-- Max Price Per kWh Section -->
+      <div class="form-section">
+        <label for="maxPrice" class="form-label">Max Price Per kWh (DKK)</label>
+        <div class="input-wrapper">
+          <input
+            type="number"
+            id="maxPrice"
+            class="price-input"
+            placeholder="Enter max price"
+            step="0.01"
+            min="0"
+            @bind="maxPricePerKwh"
+          />
+          <span class="input-suffix">DKK</span>
+        </div>
+        <p class="form-hint">Set the maximum price you're willing to pay per kilowatt-hour</p>
+      </div>
+
+      <!-- Energy Company Selection Section -->
+      <div class="form-section">
+        <label for="energyCompany" class="form-label">Energy Company</label>
+        <p class="form-hint">Select your preferred energy company</p>
+        
+        <select
+          id="energyCompany"
+          class="company-dropdown"
+          @bind="selectedCompany"
+        >
+          <option value="">-- Choose a company --</option>
+          @foreach (string company in energyCompanies)
+          {
+            <option value="@company">@company</option>
+          }
+        </select>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="form-actions">
+        <button class="btn-primary @GetButtonClass()" @onclick="SaveSettings" disabled="@isSaving">
+          <span class="button-content">
+            @if (saveStatus == "success")
+            {
+              <span class="feedback-icon">✓</span>
+              <span>Saved!</span>
+            }
+            else if (saveStatus == "error")
+            {
+              <span class="feedback-icon error">✕</span>
+              <span>Failed to Save</span>
+            }
+            else
+            {
+              <span>Save Settings</span>
+            }
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+@code {
+  private double maxPricePerKwh;
+  private string selectedCompany;
+  private List<string> energyCompanies = new();
+  private string saveStatus = "";
+  private bool isSaving = false;
+
+  protected override async Task OnInitializedAsync()
+  {
+    if (PowerService.AllCompanies.Count() == 0)
+    {
+      energyCompanies = await PowerService.GetCompaniesAsync();
+    }
+    else
+    {
+      energyCompanies = PowerService.AllCompanies;
+    }
+
+    selectedCompany = PowerService.SelectedCompany;
+    maxPricePerKwh = PowerService.SelectedMaxPrice;
+  }
+
+  private async Task SaveSettings()
+  {
+    isSaving = true;
+    bool success = await PowerService.SaveSelectionAsync(selectedCompany, maxPricePerKwh);
+    
+    saveStatus = success ? "success" : "error";
+    StateHasChanged();
+    
+    await Task.Delay(2500);
+    saveStatus = "";
+    isSaving = false;
+    StateHasChanged();
+  }
+
+  private string GetButtonClass()
+  {
+    return saveStatus == "success" ? "btn-success" : saveStatus == "error" ? "btn-error" : "";
+  }
+}
