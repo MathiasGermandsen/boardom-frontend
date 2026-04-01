@@ -8,7 +8,7 @@
 @implements IDisposable
 @inject PendingDeviceStore PendingDeviceStore
 @inject NavigationManager NavigationManager
-@inject DeviceFunctions DeviceFunctions
+@inject DeviceFunctions_old DeviceFunctionsOld
 @inject DeviceStatus DeviceStatus
 
 @attribute [Authorize]
@@ -358,8 +358,8 @@ private string confirmRemoveDeviceName = "";
   {
     isLoading = true;
 
-    devices = await DeviceFunctions.GetDevicesAsync();
-    groups = await DeviceFunctions.GetDeviceGroupsAsync();
+    devices = await DeviceFunctionsOld.GetDevicesAsync();
+    groups = await DeviceFunctionsOld.GetDeviceGroupsAsync();
 
     List<Device>? allGroupDevices = groups.SelectMany(g => g.Devices).ToList();
 
@@ -378,7 +378,7 @@ private string confirmRemoveDeviceName = "";
       addedDeviceIds.Add(dev.DeviceId);
     }
 
-    IEnumerable<Task>? sensorDataTask = allGroupDevices.Select(async device => {device.LatestReading = await DeviceFunctions.GetLatestSensorDataAsync(device.DeviceId);});
+    IEnumerable<Task>? sensorDataTask = allGroupDevices.Select(async device => {device.LatestReading = await DeviceFunctionsOld.GetLatestSensorDataAsync(device.DeviceId);});
       
     await Task.WhenAll(sensorDataTask);
 
@@ -430,7 +430,7 @@ private string confirmRemoveDeviceName = "";
     try
     {
       DeviceAddRequest? request = new DeviceAddRequest { DeviceId = pendingDeviceId!, FriendlyName = friendlyName };
-      var (success, message) = await DeviceFunctions.AddDeviceAsync(request);
+      var (success, message) = await DeviceFunctionsOld.AddDeviceAsync(request);
 
       if (success)
       {
@@ -476,7 +476,7 @@ private string confirmRemoveDeviceName = "";
     isLoadingDevices = true;
     try
     {
-      devices = await DeviceFunctions.GetDevicesAsync();
+      devices = await DeviceFunctionsOld.GetDevicesAsync();
     }
     catch (Exception ex)
     {
@@ -508,7 +508,7 @@ private string confirmRemoveDeviceName = "";
     try
     {
       DeviceEditRequest? request = new DeviceEditRequest { DeviceId = deviceId, FriendlyName = editFriendlyName.Trim() };
-      var (success, message) = await DeviceFunctions.EditDeviceAsync(request);
+      var (success, message) = await DeviceFunctionsOld.EditDeviceAsync(request);
       if (success)
       {
         editingDeviceId = null;
@@ -537,7 +537,7 @@ private string confirmRemoveDeviceName = "";
     try
     {
       DeviceDeleteRequest? request = new DeviceDeleteRequest { DeviceId = device.DeviceId, IsActive = !device.IsActive };
-      var (success, message) = await DeviceFunctions.SetDeviceActiveAsync(request);
+      var (success, message) = await DeviceFunctionsOld.SetDeviceActiveAsync(request);
       if (success)
         await LoadDevices();
       else
@@ -582,7 +582,7 @@ private async Task LoadGroupsForManage()
   isLoadingGroups = true;
   try
   {
-    managedGroups = await DeviceFunctions.GetDeviceGroupsAsync();
+    managedGroups = await DeviceFunctionsOld.GetDeviceGroupsAsync();
   }
   catch (Exception ex)
   {
@@ -614,7 +614,7 @@ private async Task SubmitEditGroup(string oldName)
   try
   {
     GroupEditRequest? request = new GroupEditRequest { GroupName = oldName, NewGroupName = editGroupNameValue.Trim() };
-    var (success, message) = await DeviceFunctions.EditGroupAsync(request);
+    var (success, message) = await DeviceFunctionsOld.EditGroupAsync(request);
     if(success)
     {
       editingGroupName = null;
@@ -643,7 +643,7 @@ private async Task DeleteGroup(string groupName)
   groupErrorMessage = null;
   try
   {
-    var (success, message) = await DeviceFunctions.DeleteGroupAsync(groupName);
+    var (success, message) = await DeviceFunctionsOld.DeleteGroupAsync(groupName);
     if (success)
     {
       await LoadGroupsForManage();
@@ -671,7 +671,7 @@ private async Task SubmitCreateGroup()
   try
   {
     GroupCreateRequest? request = new GroupCreateRequest { GroupName = newGroupName.Trim() };
-    var (success, message) = await DeviceFunctions.CreateGroupAsync(request);
+    var (success, message) = await DeviceFunctionsOld.CreateGroupAsync(request);
     if(success)
     {
       newGroupName = "";
@@ -702,7 +702,7 @@ private async Task AddDeviceToGroup(string groupName)
   {
     string deviceId = selectedDeviceIds.GetValueOrDefault(groupName,"");
     GroupAddDeviceRequest? request = new GroupAddDeviceRequest { GroupName = groupName, DeviceId = deviceId };
-    var (success, message) = await DeviceFunctions.AddDeviceToGroupAsync(request);
+    var (success, message) = await DeviceFunctionsOld.AddDeviceToGroupAsync(request);
 
     if(success)
     {
@@ -756,7 +756,7 @@ private async Task RemoveDeviceFromGroup(string groupName, string deviceId)
   try
   {
     GroupAddDeviceRequest? request = new GroupAddDeviceRequest { GroupName = groupName, DeviceId = deviceId };
-    var (success, message) = await DeviceFunctions.RemoveDeviceFromGroupAsync(request);
+    var (success, message) = await DeviceFunctionsOld.RemoveDeviceFromGroupAsync(request);
     
     if(success)
     {

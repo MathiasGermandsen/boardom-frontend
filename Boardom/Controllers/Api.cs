@@ -25,7 +25,7 @@ public class DeviceController : ControllerBase
 
 [AllowAnonymous]
 [HttpPost("connect")]
-public IActionResult Connect([FromBody] DeviceConnectRequest request)
+public IActionResult Connect([FromBody] DeviceConnect request)
   {
     if (request == null || string.IsNullOrWhiteSpace(request.DeviceId))
     return BadRequest(new { success = false, message = "Device ID is required"});
