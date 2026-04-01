@@ -508,31 +508,6 @@ h1:focus {
     text-decoration: none;
 }
 
-.fab-add-device {
-    position: fixed;
-    right: 24px;
-    bottom: 24px;
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
-    border: none;
-    padding: 0 0 9px 0;
-    background: #3b7dd9;
-    color: #ffffff;
-    font-size: 2rem;
-    line-height: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.35);
-    z-index: 900;
-    cursor: pointer;
-}
-
-.fab-add-device:hover {
-    background: #2c5aa0;
-}
-
 .add-device-overlay {
     position: fixed;
     inset: 0;
@@ -610,53 +585,110 @@ h1:focus {
     border-radius: 6px;
 }
 
-.fab-manage-devices {
+/* FAB container */
+.fab-container {
     position: fixed;
     right: 24px;
-    bottom: 92px; /* sits above the add button */
+    bottom: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
+    z-index: 900;
+}
+
+/* Popup menu */
+.fab-menu {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+.fab-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    animation: fabSlideUp 0.15s ease both;
+}
+
+.fab-menu-item:nth-child(1) { animation-delay: 0.00s; }
+.fab-menu-item:nth-child(2) { animation-delay: 0.04s; }
+.fab-menu-item:nth-child(3) { animation-delay: 0.08s; }
+.fab-menu-item:nth-child(4) { animation-delay: 0.12s; }
+
+.fab-menu-label {
+    background: #1a2332;
+    color: #e8eef7;
+    border: 1px solid rgba(59, 125, 217, 0.3);
+    font-size: 13px;
+    font-weight: 500;
+    padding: 6px 14px;
+    border-radius: 20px;
+    white-space: nowrap;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+    letter-spacing: 0.2px;
+}
+
+.fab-menu-icon {
     width: 56px;
     height: 56px;
     border-radius: 50%;
-    border: none;
     background: #2c4a7b;
-    color: #ffffff;
-    font-size: 1.5rem;
-    line-height: 1;
+    color: #e8eef7;
+    border: 1px solid rgba(59, 125, 217, 0.3);
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.35);
-    z-index: 900;
-    cursor: pointer;
+    font-size: 18px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+    flex-shrink: 0;
 }
 
-.fab-manage-devices:hover {
-    background: #1e3a5f;
-}
-
-.fab-manage-groups {
-    position: fixed;
-    right: 24px;
-    bottom: 160px; /* sits above manage-devices */
+/* Main FAB button */
+.fab-main {
     width: 56px;
     height: 56px;
     border-radius: 50%;
     border: none;
-    background: #1e4d3a;
+    background: #3b7dd9;
     color: #ffffff;
-    font-size: 1.5rem;
+    font-size: 2rem;
+    font-weight: 300;
     line-height: 1;
     display: flex;
     align-items: center;
     justify-content: center;
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.35);
-    z-index: 900;
     cursor: pointer;
-    padding: 0 0 5px 0;
+    transition: transform 0.2s ease, background 0.2s ease;
+    padding: 0 0 7px 0;
 }
 
-.fab-manage-groups:hover {
-    background: #163829;
+.fab-main:hover {
+    background: #2c5aa0;
+}
+
+.fab-main.open {
+    background: #7f1d1d;
+    transform: rotate(45deg);
+}
+
+.fab-main.open:hover {
+    background: #991b1b;
+}
+
+@keyframes fabSlideUp {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .manage-device-list {
@@ -695,19 +727,6 @@ h1:focus {
     color: #7a8fa3;
 }
 
-.device-state {
-    font-size: 0.75rem;
-    font-weight: 600;
-}
-
-.device-state.online {
-    color: #10b981;
-}
-
-.device-state.offline {
-    color: #ef4444;
-}
-
 .manage-device-actions {
     display: flex;
     gap: 0.5rem;
@@ -743,3 +762,134 @@ h1:focus {
     cursor: not-allowed;
 }
 
+/* Manage Groups rows */
+.manage-group-item {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.55rem;
+    padding: 0.62rem 0.78rem;
+    border-radius: 8px;
+    border: 1px solid rgba(130, 170, 210, 0.22);
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.02) 0%, rgba(255, 255, 255, 0) 100%),
+        rgba(20, 28, 40, 0.84);
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.22);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+    overflow: hidden;
+}
+.manage-group-item:hover {
+    transform: translateY(-1px);
+    border-color: rgba(150, 190, 230, 0.4);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.28);
+}
+.manage-group-item::after {
+    content: "";
+    position: absolute;
+    left: 8px;
+    right: 8px;
+    top: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(190, 220, 255, 0.45), transparent);
+}
+.manage-group-item .manage-device-info { gap: 0.12rem; }
+.manage-group-item .device-friendly-name {
+    font-size: 0.92rem;
+    line-height: 1.2;
+    color: #edf4ff;
+}
+.manage-group-item .device-id-small {
+    font-size: 0.68rem;
+    color: #9cb0c8;
+}
+.manage-group-item .manage-device-actions { gap: 0.35rem; }
+.manage-group-item .manage-device-actions .btn {
+    padding: 0.22rem 0.55rem;
+    font-size: 0.78rem;
+    border-radius: 6px;
+}
+.manage-group-item .manage-device-edit { gap: 0.4rem; }
+.manage-group-item .manage-device-edit .form-control {
+    min-height: 32px;
+    padding: 0.28rem 0.5rem;
+    font-size: 0.85rem;
+}
+
+
+/* Manage Groups */
+.manage-group-item {
+    background: rgba(20, 28, 40, 0.84);
+    border: 1px solid rgba(130, 170, 210, 0.18);
+    border-radius: 8px;
+    padding: 0.9rem 1rem;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    position: relative;
+    overflow: hidden;
+}
+.manage-group-item::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(190, 220, 255, 0.3), transparent);
+}
+.manage-group-item:hover {
+    border-color: rgba(59, 125, 217, 0.4);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+}
+.manage-group-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.manage-group-row .manage-device-info {
+    flex: 0 0 auto;
+    min-width: 80px;
+}
+
+.manage-group-row .form-control {
+    flex: 1;
+    min-height: 32px;
+    padding: 0.28rem 0.5rem;
+    font-size: 0.82rem;
+    background: rgba(232, 238, 247, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #e8eef7;
+    border-radius: 6px;
+}
+
+.manage-group-row .form-control option {
+    background: #1a2332;
+    color: #e8eef7;
+}
+
+.manage-group-row .btn {
+    flex-shrink: 0;
+    padding: 0.28rem 0.65rem;
+    font-size: 0.82rem;
+}
+.manage-group-create {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+.manage-group-create .form-control {
+    flex: 1;
+    background: rgba(232, 238, 247, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #e8eef7;
+    border-radius: 6px;
+    padding: 0.4rem 0.6rem;
+    font-size: 0.85rem;
+}
+.manage-group-create .btn {
+    flex-shrink: 0;
+    padding: 0.4rem 1rem;
+    font-size: 0.85rem;
+}
