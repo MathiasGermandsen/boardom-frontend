@@ -91,9 +91,31 @@ else
   </div>
 }
 
-<button type="button" class="fab-add-device" @onclick="OpenAddDevice" aria-label="Add device">+</button>
-<button type="button" class="fab-manage-devices" @onclick="OpenManageDevices" aria-label="Manage devices">⚙</button>
-<button type="button" class="fab-manage-groups" @onclick="OpenManageGroups" aria-label="Manage groups">⊞</button>
+@* Single FAB with popup menu *@
+<div class="fab-container @(showFabMenu ? "open" : "")">
+    @if (showFabMenu)
+    {
+        <div class="fab-menu">
+            <div class="fab-menu-item" @onclick="OpenAddDevice">
+                <span class="fab-menu-label">Add device</span>
+                <span class="fab-menu-icon">+</span>
+            </div>
+            <div class="fab-menu-item" @onclick="OpenManageDevices">
+                <span class="fab-menu-label">Edit devices</span>
+                <span class="fab-menu-icon">✎</span>
+            </div>
+            <div class="fab-menu-item" @onclick="OpenManageGroups">
+                <span class="fab-menu-label">Edit groups</span>
+                <span class="fab-menu-icon">⊟</span>
+            </div>
+        </div>
+    }
+    <button type="button"
+            class="fab-main @(showFabMenu ? "open" : "")"
+            @onclick="ToggleFabMenu"
+            aria-label="Actions">+</button>
+</div>
+
 
 @if (showAddDevice)
 {
@@ -171,7 +193,14 @@ else
                   <span class="device-friendly-name">@device.FriendlyName</span>
                   <span class="device-id-small">@device.DeviceId</span>
                   <span class="device-state @(!device.IsActive ? "online" : "offline")">
-                    ● @(!device.IsActive ? "Active" : "Inactive")
+                    @if (DeviceStatus.StatusList[device.DeviceId])
+                  {
+                    <p style="font-weight: bold; color:#047857; ">● Online</p>
+                  }
+                  else
+                  {
+                    <p style="color: #991b1b; font-weight: bold;">● Offline</p>
+                  }
                   </span>
                 </div>
                 <div class="manage-device-actions">
@@ -214,58 +243,62 @@ else
         <div class="manage-device-list">
           @foreach (DeviceGroup group in managedGroups)
           {
-            <div class="manage-device-item">
+            <div class="manage-group-item">
               @if (editingGroupName == group.Name)
               {
-                <div class="manage-device-edit">
-                  <input class="form-control" @bind="editGroupNameValue" @bind:event="oninput" />
-                  <div class="manage-device-actions">
-                    <button class="btn btn-primary"
-                            @onclick="() => SubmitEditGroup(group.Name)"
-                            disabled="@(isSubmittingGroup || string.IsNullOrWhiteSpace(editGroupNameValue))">Save</button>
-                    <button class="btn btn-secondary" @onclick="CancelEditGroup" disabled="@isSubmittingGroup">Cancel</button>
+                <div class="manage-device-edit" style="align-items: flex-end;">
+                  <div style="display:flex; flex-direction:column; gap:0.25rem; flex:1;">
+                    <span style="font-size:0.75rem; color:#7a8fa3; font-weight:600; letter-spacing:0.5px; text-transform:uppercase;">Name</span>
+                    <input class="form-control" @bind="editGroupNameValue" @bind:event="oninput" />
                   </div>
+                  <div class="manage-device-actions">
+                  <button class="btn btn-primary"
+                          @onclick="() => SubmitEditGroup(group.Name)"
+                          disabled="@(isSubmittingGroup || string.IsNullOrWhiteSpace(editGroupNameValue))">Save</button>
+                  <button class="btn btn-secondary" @onclick="CancelEditGroup" disabled="@isSubmittingGroup">Cancel</button>
                 </div>
+              </div>
               }
               else
               {
+              <div class="manage-group-row">
                 <div class="manage-device-info">
                   <span class="device-friendly-name">@group.Name</span>
                   <span class="device-id-small">@group.Devices.Count device(s)</span>
                 </div>
-                <div class="manage-device-actions">
-                  <button class="btn btn-secondary" @onclick="() => StartEditGroup(group.Name)" disabled="@isSubmittingGroup">Edit</button>
-                  <button class="btn btn-danger" @onclick="() => DeleteGroup(group.Name)" disabled="@isSubmittingGroup">Delete</button>
-                </div>
-                  <select class="form-control" value="@(selectedDeviceIds.GetValueOrDefault(group.Name, ""))" @onchange="@(e => selectedDeviceIds[group.Name] = e.Value?.ToString() ?? string.Empty)">
-                    <option value="">-- Select device --</option>
-                      @if (devices != null)
-                      {
-                        @foreach (var d in devices)
-                          {
-                              <option value="@d.DeviceId">@d.FriendlyName</option>
-                          }
-                      }
-                    </select>
-                    <button class="btn btn-primary"
-                            @onclick="() => AddDeviceToGroup(group.Name)"
-                            disabled="@(isSubmittingGroup || string.IsNullOrWhiteSpace(selectedDeviceIds.GetValueOrDefault(group.Name)))">
-                    Add Device
-                  </button>
+                <select class="form-control"
+                        value="@(selectedDeviceIds.GetValueOrDefault(group.Name, ""))"
+                        @onchange="@(e => selectedDeviceIds[group.Name] = e.Value?.ToString() ?? string.Empty)">
+                  <option value="">— Add device —</option>
+                  @if (devices != null)
+                  {
+                    @foreach (DeviceInfo d in devices)
+                    {
+                      <option value="@d.DeviceId">@d.FriendlyName</option>
+                    }
+                  }
+                </select>
+                <button class="btn btn-primary"
+                        @onclick="() => AddDeviceToGroup(group.Name)"
+                        disabled="@(isSubmittingGroup || string.IsNullOrWhiteSpace(selectedDeviceIds.GetValueOrDefault(group.Name)))">
+                  Add
+                </button>
+                <button class="btn btn-secondary" @onclick="() => StartEditGroup(group.Name)" disabled="@isSubmittingGroup">Edit</button>
+                <button class="btn btn-danger" @onclick="() => DeleteGroup(group.Name)" disabled="@isSubmittingGroup">Delete</button>
+              </div>
               }
             </div>
           }
         </div>
 
-        <div class="manage-device-item" style="margin-top:1rem;">
+        <div class="manage-group-create">
           <input class="form-control" placeholder="New group name" @bind="newGroupName" @bind:event="oninput" />
-          <div class="manage-device-actions">
-            <button class="btn btn-primary"
-                    @onclick="SubmitCreateGroup"
-                    disabled="@(isSubmittingGroup || string.IsNullOrWhiteSpace(newGroupName))">Create Group</button>
-          </div>
+          <button class="btn btn-primary"
+                  @onclick="SubmitCreateGroup"
+                  disabled="@(isSubmittingGroup || string.IsNullOrWhiteSpace(newGroupName))">Create</button>
         </div>
       }
+
       @if (!string.IsNullOrWhiteSpace(groupErrorMessage))
       {
         <div class="add-device-error">@groupErrorMessage</div>
@@ -279,20 +312,20 @@ else
 }
 
 @if (showConfirmRemove)
-        {
-          <div class="add-device-overlay">
-            <div class="add-device-modal" @onclick:stopPropagation="true">
-              <h1 class="add-device-title">REMOVE DEVICE</h1>
-              <p style="color:#e8eef7;margin-bottom:1.5rem;">
-                Remove <strong>@confirmRemoveDeviceName</strong> from this group?
-              </p>
-              <div class="add-device-actions">
-                <button class="btn btn-secondary" @onclick="CancelRemoveDeviceFromGroup">Cancel</button>
-                <button class="btn btn-danger" @onclick="ConfirmRemoveDeviceFromGroup">Remove</button>
-              </div>
-            </div>
-          </div>
-        }
+{
+  <div class="add-device-overlay">
+    <div class="add-device-modal" @onclick:stopPropagation="true">
+      <h1 class="add-device-title">REMOVE DEVICE</h1>
+      <p style="color:#e8eef7;margin-bottom:1.5rem;">
+        Remove <strong>@confirmRemoveDeviceName</strong> from this group?
+      </p>
+      <div class="add-device-actions">
+        <button class="btn btn-secondary" @onclick="CancelRemoveDeviceFromGroup">Cancel</button>
+        <button class="btn btn-danger" @onclick="ConfirmRemoveDeviceFromGroup">Remove</button>
+      </div>
+    </div>
+  </div>
+}
 
 @code {
 
@@ -304,7 +337,6 @@ else
   private List<string>? addedDeviceIds = new List<string>();
   private int activeDeviceCount;
   private double? averageTemperature;
-
   // --------------- Add Device ---------------
   private bool showAddDevice;
   private string? pendingDeviceId;
@@ -330,7 +362,7 @@ else
   private bool isSubmittingGroup;
 private Dictionary<string, string> selectedDeviceIds = new();
 
-// remove from group confirmation pop up
+// --------------- remove from group confirmation pop up ---------------
 private bool showConfirmRemove;
 private string confirmRemoveGroupName = "";
 private string confirmRemoveDeviceId = "";
@@ -406,6 +438,7 @@ private string confirmRemoveDeviceName = "";
 
   private void OpenAddDevice()
   {
+    showFabMenu = false;
     showAddDevice = true;
     errorMessage = null;
     pendingDeviceId = PendingDeviceStore.PendingDeviceId;
@@ -457,6 +490,7 @@ private string confirmRemoveDeviceName = "";
 
   private async Task OpenManageDevices()
   {
+    showFabMenu = false;
     showManageDevices = true;
     manageErrorMessage = null;
     editingDeviceId = null;
@@ -560,6 +594,7 @@ private string confirmRemoveDeviceName = "";
 
   private async Task OpenManageGroups()
 {
+    showFabMenu = false;
     showManageGroups = true;
     groupErrorMessage = null;
     editingGroupName = null;
@@ -768,4 +803,12 @@ private async Task RemoveDeviceFromGroup(string groupName, string deviceId)
     _=ex;
   }
 }
+
+private bool showFabMenu = false;
+
+private void ToggleFabMenu()
+{
+    showFabMenu = !showFabMenu;
+}
+
 }
