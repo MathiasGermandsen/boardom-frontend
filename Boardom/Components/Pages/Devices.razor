@@ -1,7 +1,7 @@
 @page "/devices"
 @using Boardom.Models
 @using Boardom.Services
-@inject DeviceFunctions DeviceService
+@inject DeviceFunctions DeviceFunctions
 @inject DeviceStatus DeviceStatus
 
 <PageTitle>Devices - BOARDOM</PageTitle>
@@ -137,7 +137,7 @@
         <div class="arduino-card">
           <div class="card-header" style="align-items: flex-start;">
             <div>
-              <h3>@device.Name</h3>
+              <h3>@device.FriendlyName</h3>
               <div class="device-id-label">@device.DeviceId</div>
             </div>
             @if (DeviceStatus.StatusList[device.DeviceId])
@@ -192,18 +192,18 @@
     isLoading = true;
     try
     {
-      devices = await DeviceService.GetAllDevicesAsync();
+      devices = await DeviceFunctions.GetAllDevices();
 
-      IEnumerable<Task>? tasks = devices?.Select(async d =>
-      {
-        d.LatestReading = await DeviceService.GetLatestSensorDataAsync(d.DeviceId);
-      });
-
-      if (tasks!.Count() != 0)
-      {
-          await Task.WhenAll(tasks!);
-
-      }
+      // IEnumerable<Task>? tasks = devices?.Select(async d =>
+      // {
+      //   d.SensorReadings[0] = await DeviceService.GetLatestSensorDataAsync(d.DeviceId);
+      // });
+      //
+      // if (tasks!.Count() != 0)
+      // {
+      //     await Task.WhenAll(tasks!);
+      //
+      // }
     }
     finally
     {

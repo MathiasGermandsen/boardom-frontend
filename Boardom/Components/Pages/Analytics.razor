@@ -7,6 +7,8 @@
 
 @inject NavigationManager NavigationManager
 @inject DeviceFunctions DeviceFunctions
+@inject GroupFunctions GroupFunctions
+@inject DataFunctions DataFunctions
 @inject DeviceStatus DeviceStatus
 @inject IJSRuntime JS
 
@@ -43,7 +45,7 @@
                         @foreach (Device device in deviceList)
                         {
                            <div class="device-item" @onclick="() => SelectDevice(device)">
-                                <span class="device-name">@device.Name</span>
+                                <span class="device-name">@device.FriendlyName</span>
                                 @if (DeviceStatus.StatusList[device.DeviceId])
                                 {
                                     <span class="device-status online">Online</span>
@@ -59,7 +61,7 @@
                 else
                 {
                     <div class="group-list">
-                        @foreach (DeviceGroup group in groupList)
+                        @foreach (Group group in groupList)
                         {
                            <div class="group-item" @onclick="() => SelectGroup(group)">
                                 <span class="group-name">@group.Name</span>
@@ -81,7 +83,7 @@
         <div class="analytics-controls">
             <div class="selected-device-display" @onclick="ChangeDevice">
                 <span class="selected-device-label">Selected:</span>
-                <span class="selected-device-name">@(selectedDevice?.Name ?? selectedGroup?.Name)</span>
+                <span class="selected-device-name">@(selectedDevice.FriendlyName ?? selectedGroup?.Name)</span>
             </div>
             
             <div class="control-group">
@@ -168,13 +170,13 @@
     private double? avgValue = 0;
 
     List<Device> deviceList = new List<Device>();
-    List<DeviceGroup> groupList = new List<DeviceGroup>();
+    List<Group> groupList = new List<Group>();
 
     List<DataObject> singleData = new List<DataObject>();
     Dictionary<string, List<DataObject>> groupData = new Dictionary<string, List<DataObject>>();
 
     private Device? selectedDevice;
-    private DeviceGroup? selectedGroup;
+    private Group? selectedGroup;
 
     private bool selected = false;
     private bool showData = false;
@@ -190,8 +192,8 @@
 
     protected override async Task OnInitializedAsync()
     {
-        deviceList = await DeviceFunctions.GetAllDevicesAsync();
-        groupList = await DeviceFunctions.GetDeviceGroupsAsync();
+        deviceList = await DeviceFunctions.GetAllDevices();
+        groupList = await GroupFunctions.GetAllGroups();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -215,7 +217,7 @@
         selectedGroup = null;
     }
 
-    private void SelectGroup(DeviceGroup group)
+    private void SelectGroup(Group group)
     {
         selected = true;
         selectedGroup = group;
@@ -262,7 +264,20 @@
 
             while (true)
             {
-                allData.AddRange(await DeviceFunctions.GetFilteredSensorDataAsync(selectedDevice.DeviceId, selectedDataType, startDate, endDate, currentPage));
+                DataRetrieval dataRequest = new DataRetrieval()
+                {
+                    DeviceId = selectedDevice.DeviceId,
+                    StartDate = startDate,
+                    EndDate = endDate,
+                    Page = currentPage,
+                };
+
+                List<SensorReading> newData = await DataFunctions.GetData(dataRequest);
+
+                if (newData.Count > 0)
+                {
+                    allData.AddRange(newData);
+                }
                 
                 if (allData.Count < (100 * currentPage))
                 {
@@ -323,12 +338,15 @@
 
                 while (true)
                 {
-                    allData.AddRange(await DeviceFunctions.GetFilteredSensorDataAsync(
-                    device.DeviceId,
-                    selectedDataType,
-                    startDate,
-                    endDate,
-                    currentPage));
+                    DataRetrieval dataRequest = new DataRetrieval()
+                    {
+                        DeviceId = device.DeviceId,
+                        StartDate = startDate,
+                        EndDate = endDate,
+                        Page = currentPage,
+                    };
+                    
+                    allData.AddRange(await DataFunctions.GetData(dataRequest));
                     
                     if (allData.Count < (100 * currentPage))
                     {
@@ -376,7 +394,7 @@
                     count++;
                 }
 
-                groupData[device.Name] = tempData;
+                groupData[device.FriendlyName] = tempData;
 
                 if (groupData.Count == 0)
                 {
@@ -402,7 +420,7 @@
         if (selectedDevice != null)
         {
             datasets.Add(new {
-                label = selectedDevice.Name,
+                label = selectedDevice.FriendlyName,
                 data = singleData.Select(d => new {
                     x = new DateTimeOffset(d.Time).ToUnixTimeMilliseconds(),
                     y = d.Data

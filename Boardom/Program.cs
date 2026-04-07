@@ -21,6 +21,8 @@ builder.Services.AddRazorComponents()
 builder.Services.AddSingleton<PendingDeviceStore>();
 builder.Services.AddSingleton<PowerService>();
 builder.Services.AddScoped<Boardom.Services.DeviceFunctions>();
+builder.Services.AddScoped<Boardom.Services.DataFunctions>();
+builder.Services.AddScoped<Boardom.Services.GroupFunctions>();
 
 // DeviceStatus is a background worker but we also need to inject it into components
 builder.Services.AddSingleton<DeviceStatus>();
