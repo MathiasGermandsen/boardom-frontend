@@ -2,6 +2,7 @@
 using Boardom.Models;
 using System.Text;
 using Newtonsoft.Json.Linq;
+using System.Runtime.CompilerServices;
 
 namespace Boardom.Services;
 
@@ -9,17 +10,21 @@ public class DataFunctions
 {
     private readonly HttpClient _httpClient;
     private readonly PendingDeviceStore _pendingDeviceStore;
+    private readonly ApiTokenService _tokenService;
     private readonly ILogger<DeviceFunctions> _logger;
     
-    public DataFunctions(IHttpClientFactory httpClientFactory, PendingDeviceStore pendingDeviceStore, ILogger<DeviceFunctions> logger)
+    public DataFunctions(IHttpClientFactory httpClientFactory, PendingDeviceStore pendingDeviceStore, ILogger<DeviceFunctions> logger, ApiTokenService tokenService)
     {
         _httpClient = httpClientFactory.CreateClient("DatabaseApi");
         _pendingDeviceStore = pendingDeviceStore;
         _logger = logger;
+        _tokenService = tokenService;
     }
 
     public async Task<List<SensorReading>> GetData(DataRetrieval request)
     {
+        await AttachTokenAsync();
+
         if (string.IsNullOrWhiteSpace(request.DeviceId))
         {
             _logger.LogError("No device ID specified");
@@ -67,6 +72,8 @@ public class DataFunctions
 
     public async Task<SensorReading?> GetLatestSensorDataAsync(string deviceId)
     {
+        await AttachTokenAsync();
+        
         if (string.IsNullOrWhiteSpace(deviceId))
         {
             _logger.LogWarning("[DEBUG] GetLatestSensorDataAsync called with empty deviceId");
@@ -94,5 +101,13 @@ public class DataFunctions
         }
         
         return reading;
+    }
+
+    //JWT token method
+    private async Task AttachTokenAsync()
+    {
+        var token = await _tokenService.GetAccessTokenAsync();
+        _httpClient.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
     }
 }

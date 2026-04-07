@@ -23,6 +23,8 @@ builder.Services.AddSingleton<PowerService>();
 builder.Services.AddScoped<Boardom.Services.DeviceFunctions>();
 builder.Services.AddScoped<Boardom.Services.DataFunctions>();
 builder.Services.AddScoped<Boardom.Services.GroupFunctions>();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ApiTokenService>();
 
 // DeviceStatus is a background worker but we also need to inject it into components
 builder.Services.AddSingleton<DeviceStatus>();
@@ -110,6 +112,10 @@ builder.Services.AddAuth0WebAppAuthentication(options =>
       return Task.CompletedTask;
     }
   };
+})
+.WithAccessToken(options =>
+{
+  options.Audience = builder.Configuration["Auth0:Audience"];
 });
 
 builder.Services.AddHealthChecks();

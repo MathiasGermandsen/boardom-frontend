@@ -53,4 +53,7 @@ public sealed class Device
     
     [JsonProperty("latestSensorReading")]
     public SensorReading LatestReading { get; set; } = new SensorReading();
+
+    [JsonProperty("userId")]
+    public string UserId { get; set; } = string.Empty;
 }
