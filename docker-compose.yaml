@@ -10,12 +10,13 @@
       - ASPNETCORE_URLS=http://+:13000
       - ASPNETCORE_FORWARDEDHEADERS_ENABLED=true
       - ApiSettings__DatabaseApiUrl=${IP_ADDRESS_PORT}
+      - ApiSettings__PowerApiUrl=${POWER_API_URL}
       - Auth0__Domain=${AUTH0_DOMAIN}
       - Auth0__ClientId=${AUTH0_CLIENT_ID}
       - Auth0__ClientSecret=${AUTH0_CLIENT_SECRET}
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:13000/health"]
+      test: [ "CMD", "curl", "-f", "http://localhost:13000/health" ]
       interval: 30s
       timeout: 10s
       retries: 3
