@@ -10,11 +10,12 @@ public sealed class DeviceFunctions
     private readonly PendingDeviceStore _pendingDeviceStore;
     private readonly ILogger<DeviceFunctions> _logger;
     
-    private enum RequestType
+    private enum APIRequest
     {
         GET,
-        POST,
-        PUT,
+        GET_ALL,
+        ADD,
+        EDIT,
         DELETE,
     }
 
@@ -25,16 +26,18 @@ public sealed class DeviceFunctions
         _logger = logger;
     }
 
-    private string FetchUrl(RequestType req, string param = "")
+    private string FetchUrl(APIRequest req, string param = "")
     {
         switch (req)
         {
-            case RequestType.GET:
-            case RequestType.DELETE:    
+            case APIRequest.GET:    
+            case APIRequest.DELETE:
                 return $"Device/{param}";
-            case RequestType.POST:
+            case APIRequest.GET_ALL:
+                return $"Device/getAll";
+            case APIRequest.ADD:
                 return $"Device/add";
-            case RequestType.PUT:
+            case APIRequest.EDIT:
                 return $"Device/edit";
         }
         return "";
@@ -42,7 +45,7 @@ public sealed class DeviceFunctions
         
     public async Task<List<Device>> GetAllDevices()
     {
-        HttpResponseMessage response = await _httpClient.GetAsync(FetchUrl(RequestType.GET, "getAll"));
+        HttpResponseMessage response = await _httpClient.GetAsync(FetchUrl(APIRequest.GET, "getAll"));
 
         if (!response.IsSuccessStatusCode)
         {
@@ -81,7 +84,7 @@ public sealed class DeviceFunctions
         
         string encodedDevId = Uri.EscapeDataString(request.DeviceId);
         
-        HttpResponseMessage response = await _httpClient.GetAsync(FetchUrl(RequestType.GET, encodedDevId));
+        HttpResponseMessage response = await _httpClient.GetAsync(FetchUrl(APIRequest.GET, encodedDevId));
 
         if (response.IsSuccessStatusCode)
         {
@@ -90,7 +93,7 @@ public sealed class DeviceFunctions
             return returnStatus;
         }
         
-        response = await _httpClient.PostAsJsonAsync(FetchUrl(RequestType.POST), request);
+        response = await _httpClient.PostAsJsonAsync(FetchUrl(APIRequest.ADD), request);
         string result = await response.Content.ReadAsStringAsync();
 
         if (response.IsSuccessStatusCode)
@@ -131,7 +134,7 @@ public sealed class DeviceFunctions
         string json = JsonConvert.SerializeObject(request);
         StringContent content = new StringContent(json, Encoding.UTF8, "application/json");
         
-        HttpResponseMessage response = await _httpClient.PutAsync(FetchUrl(RequestType.PUT), content);
+        HttpResponseMessage response = await _httpClient.PutAsync(FetchUrl(APIRequest.EDIT), content);
         string result = await response.Content.ReadAsStringAsync();
 
         if (response.IsSuccessStatusCode)
@@ -164,7 +167,7 @@ public sealed class DeviceFunctions
         
         string encodedDeviceId = Uri.EscapeDataString(request.DeviceId);
         
-        HttpResponseMessage response = await _httpClient.DeleteAsync(FetchUrl(RequestType.DELETE, encodedDeviceId));
+        HttpResponseMessage response = await _httpClient.DeleteAsync(FetchUrl(APIRequest.DELETE, encodedDeviceId));
 
         if (!response.IsSuccessStatusCode)
         {

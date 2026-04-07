@@ -8,7 +8,9 @@
 @implements IDisposable
 @inject PendingDeviceStore PendingDeviceStore
 @inject NavigationManager NavigationManager
-@inject DeviceFunctions_old DeviceFunctionsOld
+@inject DeviceFunctions DeviceFunctions
+@inject GroupFunctions GroupFunctions
+@inject DataFunctions DataFunctions
 @inject DeviceStatus DeviceStatus
 
 @attribute [Authorize]
@@ -44,7 +46,7 @@ else
       </div>
     </div>
     <div class="dashboard-groups">
-      @foreach (DeviceGroup group in groups)
+      @foreach (Group group in groups)
       {
         <div class="dashboard-group">
           <div class="group-header">
@@ -56,7 +58,7 @@ else
             {
               <div class="arduino-card">
                 <div class="card-header">
-                  <h3>@device.Name</h3>
+                  <h3>@device.FriendlyName</h3>
                   @if (DeviceStatus.StatusList[device.DeviceId])
                   {
                     <span class="device-status online">● Online</span>
@@ -65,7 +67,7 @@ else
                   {
                     <span class="device-status offline">● Offline</span>
                   }
-                 <button class="btn btn-danger btn-sm" @onclick="() => PromptRemoveDeviceFromGroup(group.Name, device.DeviceId, device.Name)">✕</button>
+                 <button class="btn btn-danger btn-sm" @onclick="() => PromptRemoveDeviceFromGroup(group.Name, device.DeviceId, device.FriendlyName)">✕</button>
                 </div>
                 <div class="sensor-data">
                   @{
@@ -91,9 +93,31 @@ else
   </div>
 }
 
-<button type="button" class="fab-add-device" @onclick="OpenAddDevice" aria-label="Add device">+</button>
-<button type="button" class="fab-manage-devices" @onclick="OpenManageDevices" aria-label="Manage devices">⚙</button>
-<button type="button" class="fab-manage-groups" @onclick="OpenManageGroups" aria-label="Manage groups">⊞</button>
+@* Single FAB with popup menu *@
+<div class="fab-container @(showFabMenu ? "open" : "")">
+    @if (showFabMenu)
+    {
+        <div class="fab-menu">
+            <div class="fab-menu-item" @onclick="OpenAddDevice">
+                <span class="fab-menu-label">Add device</span>
+                <span class="fab-menu-icon">+</span>
+            </div>
+            <div class="fab-menu-item" @onclick="OpenManageDevices">
+                <span class="fab-menu-label">Edit devices</span>
+                <span class="fab-menu-icon">✎</span>
+            </div>
+            <div class="fab-menu-item" @onclick="OpenManageGroups">
+                <span class="fab-menu-label">Edit groups</span>
+                <span class="fab-menu-icon">⊟</span>
+            </div>
+        </div>
+    }
+    <button type="button"
+            class="fab-main @(showFabMenu ? "open" : "")"
+            @onclick="ToggleFabMenu"
+            aria-label="Actions">+</button>
+</div>
+
 
 @if (showAddDevice)
 {
@@ -151,7 +175,7 @@ else
       else
       {
         <div class="manage-device-list">
-          @foreach (DeviceInfo device in devices)
+          @foreach (Device device in devices)
           {
             <div class="manage-device-item">
               @if (editingDeviceId == device.DeviceId)
@@ -170,8 +194,15 @@ else
                 <div class="manage-device-info">
                   <span class="device-friendly-name">@device.FriendlyName</span>
                   <span class="device-id-small">@device.DeviceId</span>
-                  <span class="device-state @(!device.IsActive ? "online" : "offline")">
-                    ● @(!device.IsActive ? "Active" : "Inactive")
+                  <span class="device-state @(!DeviceStatus.StatusList[device.DeviceId] ? "online" : "offline")">
+                    @if (DeviceStatus.StatusList[device.DeviceId])
+                  {
+                    <p style="font-weight: bold; color:#047857; ">● Online</p>
+                  }
+                  else
+                  {
+                    <p style="color: #991b1b; font-weight: bold;">● Offline</p>
+                  }
                   </span>
                 </div>
                 <div class="manage-device-actions">
@@ -212,60 +243,64 @@ else
       else
       {
         <div class="manage-device-list">
-          @foreach (DeviceGroup group in managedGroups)
+          @foreach (Group group in managedGroups)
           {
-            <div class="manage-device-item">
+            <div class="manage-group-item">
               @if (editingGroupName == group.Name)
               {
-                <div class="manage-device-edit">
-                  <input class="form-control" @bind="editGroupNameValue" @bind:event="oninput" />
-                  <div class="manage-device-actions">
-                    <button class="btn btn-primary"
-                            @onclick="() => SubmitEditGroup(group.Name)"
-                            disabled="@(isSubmittingGroup || string.IsNullOrWhiteSpace(editGroupNameValue))">Save</button>
-                    <button class="btn btn-secondary" @onclick="CancelEditGroup" disabled="@isSubmittingGroup">Cancel</button>
+                <div class="manage-device-edit" style="align-items: flex-end;">
+                  <div style="display:flex; flex-direction:column; gap:0.25rem; flex:1;">
+                    <span style="font-size:0.75rem; color:#7a8fa3; font-weight:600; letter-spacing:0.5px; text-transform:uppercase;">Name</span>
+                    <input class="form-control" @bind="editGroupNameValue" @bind:event="oninput" />
                   </div>
+                  <div class="manage-device-actions">
+                  <button class="btn btn-primary"
+                          @onclick="() => SubmitEditGroup(group.Name)"
+                          disabled="@(isSubmittingGroup || string.IsNullOrWhiteSpace(editGroupNameValue))">Save</button>
+                  <button class="btn btn-secondary" @onclick="CancelEditGroup" disabled="@isSubmittingGroup">Cancel</button>
                 </div>
+              </div>
               }
               else
               {
+              <div class="manage-group-row">
                 <div class="manage-device-info">
                   <span class="device-friendly-name">@group.Name</span>
                   <span class="device-id-small">@group.Devices.Count device(s)</span>
                 </div>
-                <div class="manage-device-actions">
-                  <button class="btn btn-secondary" @onclick="() => StartEditGroup(group.Name)" disabled="@isSubmittingGroup">Edit</button>
-                  <button class="btn btn-danger" @onclick="() => DeleteGroup(group.Name)" disabled="@isSubmittingGroup">Delete</button>
-                </div>
-                  <select class="form-control" value="@(selectedDeviceIds.GetValueOrDefault(group.Name, ""))" @onchange="@(e => selectedDeviceIds[group.Name] = e.Value?.ToString() ?? string.Empty)">
-                    <option value="">-- Select device --</option>
-                      @if (devices != null)
-                      {
-                        @foreach (var d in devices)
-                          {
-                              <option value="@d.DeviceId">@d.FriendlyName</option>
-                          }
-                      }
-                    </select>
-                    <button class="btn btn-primary"
-                            @onclick="() => AddDeviceToGroup(group.Name)"
-                            disabled="@(isSubmittingGroup || string.IsNullOrWhiteSpace(selectedDeviceIds.GetValueOrDefault(group.Name)))">
-                    Add Device
-                  </button>
+                <select class="form-control"
+                        value="@(selectedDeviceIds.GetValueOrDefault(group.Name, ""))"
+                        @onchange="@(e => selectedDeviceIds[group.Name] = e.Value?.ToString() ?? string.Empty)">
+                  <option value="">— Add device —</option>
+                  @if (devices != null)
+                  {
+                    @foreach (Device d in devices)
+                    {
+                      <option value="@d.DeviceId">@d.FriendlyName</option>
+                    }
+                  }
+                </select>
+                <button class="btn btn-primary"
+                        @onclick="() => AddDeviceToGroup(group.Name)"
+                        disabled="@(isSubmittingGroup || string.IsNullOrWhiteSpace(selectedDeviceIds.GetValueOrDefault(group.Name)))">
+                  Add
+                </button>
+                <button class="btn btn-secondary" @onclick="() => StartEditGroup(group.Name)" disabled="@isSubmittingGroup">Edit</button>
+                <button class="btn btn-danger" @onclick="() => DeleteGroup(group.Name)" disabled="@isSubmittingGroup">Delete</button>
+              </div>
               }
             </div>
           }
         </div>
 
-        <div class="manage-device-item" style="margin-top:1rem;">
+        <div class="manage-group-create">
           <input class="form-control" placeholder="New group name" @bind="newGroupName" @bind:event="oninput" />
-          <div class="manage-device-actions">
-            <button class="btn btn-primary"
-                    @onclick="SubmitCreateGroup"
-                    disabled="@(isSubmittingGroup || string.IsNullOrWhiteSpace(newGroupName))">Create Group</button>
-          </div>
+          <button class="btn btn-primary"
+                  @onclick="SubmitCreateGroup"
+                  disabled="@(isSubmittingGroup || string.IsNullOrWhiteSpace(newGroupName))">Create</button>
         </div>
       }
+
       @if (!string.IsNullOrWhiteSpace(groupErrorMessage))
       {
         <div class="add-device-error">@groupErrorMessage</div>
@@ -279,32 +314,31 @@ else
 }
 
 @if (showConfirmRemove)
-        {
-          <div class="add-device-overlay">
-            <div class="add-device-modal" @onclick:stopPropagation="true">
-              <h1 class="add-device-title">REMOVE DEVICE</h1>
-              <p style="color:#e8eef7;margin-bottom:1.5rem;">
-                Remove <strong>@confirmRemoveDeviceName</strong> from this group?
-              </p>
-              <div class="add-device-actions">
-                <button class="btn btn-secondary" @onclick="CancelRemoveDeviceFromGroup">Cancel</button>
-                <button class="btn btn-danger" @onclick="ConfirmRemoveDeviceFromGroup">Remove</button>
-              </div>
-            </div>
-          </div>
-        }
+{
+  <div class="add-device-overlay">
+    <div class="add-device-modal" @onclick:stopPropagation="true">
+      <h1 class="add-device-title">REMOVE DEVICE</h1>
+      <p style="color:#e8eef7;margin-bottom:1.5rem;">
+        Remove <strong>@confirmRemoveDeviceName</strong> from this group?
+      </p>
+      <div class="add-device-actions">
+        <button class="btn btn-secondary" @onclick="CancelRemoveDeviceFromGroup">Cancel</button>
+        <button class="btn btn-danger" @onclick="ConfirmRemoveDeviceFromGroup">Remove</button>
+      </div>
+    </div>
+  </div>
+}
 
 @code {
 
 // --------------- Dashboard ---------------
   private bool isLoading = true;
   private bool isLoadingDevices;
-  private List<DeviceGroup> groups = new List<DeviceGroup>();
-  private List<DeviceInfo>? devices;
+  private List<Group> groups = new List<Group>();
+  private List<Device>? devices;
   private List<string>? addedDeviceIds = new List<string>();
   private int activeDeviceCount;
   private double? averageTemperature;
-
   // --------------- Add Device ---------------
   private bool showAddDevice;
   private string? pendingDeviceId;
@@ -322,7 +356,7 @@ else
   // --------------- Manage Groups ---------------
   private bool showManageGroups;
   private bool isLoadingGroups;
-  private List<DeviceGroup> managedGroups = new List<DeviceGroup>();
+  private List<Group> managedGroups = new List<Group>();
   private string? editingGroupName;
   private string editGroupNameValue = "";
   private string newGroupName = "";
@@ -330,7 +364,7 @@ else
   private bool isSubmittingGroup;
 private Dictionary<string, string> selectedDeviceIds = new();
 
-// remove from group confirmation pop up
+// --------------- remove from group confirmation pop up ---------------
 private bool showConfirmRemove;
 private string confirmRemoveGroupName = "";
 private string confirmRemoveDeviceId = "";
@@ -358,11 +392,11 @@ private string confirmRemoveDeviceName = "";
   {
     isLoading = true;
 
-    devices = await DeviceFunctionsOld.GetDevicesAsync();
-    groups = await DeviceFunctionsOld.GetDeviceGroupsAsync();
+    devices = await DeviceFunctions.GetAllDevices();
+    groups = await GroupFunctions.GetAllGroups();
 
     List<Device>? allGroupDevices = groups.SelectMany(g => g.Devices).ToList();
-
+    
     foreach (Device dev in allGroupDevices)
     {
       if (addedDeviceIds!.Contains(dev.DeviceId))
@@ -377,14 +411,10 @@ private string confirmRemoveDeviceName = "";
 
       addedDeviceIds.Add(dev.DeviceId);
     }
-
-    IEnumerable<Task>? sensorDataTask = allGroupDevices.Select(async device => {device.LatestReading = await DeviceFunctionsOld.GetLatestSensorDataAsync(device.DeviceId);});
-      
-    await Task.WhenAll(sensorDataTask);
-
-    List<double>? temps = allGroupDevices
+    
+    List<double>? temps = devices
       .Where(d => d.LatestReading?.Temperature is not null)
-      .Select(d => d.LatestReading!.Temperature!.Value)
+      .Select(d => d.LatestReading!.Temperature!)
       .ToList();
 
     averageTemperature = temps.Count > 0 ? temps.Average() : null;
@@ -406,6 +436,7 @@ private string confirmRemoveDeviceName = "";
 
   private void OpenAddDevice()
   {
+    showFabMenu = false;
     showAddDevice = true;
     errorMessage = null;
     pendingDeviceId = PendingDeviceStore.PendingDeviceId;
@@ -429,10 +460,15 @@ private string confirmRemoveDeviceName = "";
 
     try
     {
-      DeviceAddRequest? request = new DeviceAddRequest { DeviceId = pendingDeviceId!, FriendlyName = friendlyName };
-      var (success, message) = await DeviceFunctionsOld.AddDeviceAsync(request);
+      DeviceAdd? request = new DeviceAdd()
+      {
+        DeviceId = pendingDeviceId!, 
+        FriendlyName = friendlyName
+      };
+      
+      ReturnStatusObject response = await DeviceFunctions.AddDevice(request);
 
-      if (success)
+      if (response.Success)
       {
         PendingDeviceStore.Clear();
         friendlyName = "";
@@ -442,7 +478,7 @@ private string confirmRemoveDeviceName = "";
       }
       else
       {
-        errorMessage = message;
+        errorMessage = response.Message;
       }
     }
     catch (Exception ex)
@@ -457,6 +493,7 @@ private string confirmRemoveDeviceName = "";
 
   private async Task OpenManageDevices()
   {
+    showFabMenu = false;
     showManageDevices = true;
     manageErrorMessage = null;
     editingDeviceId = null;
@@ -476,7 +513,7 @@ private string confirmRemoveDeviceName = "";
     isLoadingDevices = true;
     try
     {
-      devices = await DeviceFunctionsOld.GetDevicesAsync();
+      devices = await DeviceFunctions.GetAllDevices();
     }
     catch (Exception ex)
     {
@@ -488,7 +525,7 @@ private string confirmRemoveDeviceName = "";
     }
   }
 
-  private void StartEditDevice(DeviceInfo device)
+  private void StartEditDevice(Device device)
   {
     editingDeviceId = device.DeviceId;
     editFriendlyName = device.FriendlyName;
@@ -507,9 +544,14 @@ private string confirmRemoveDeviceName = "";
     manageErrorMessage = null;
     try
     {
-      DeviceEditRequest? request = new DeviceEditRequest { DeviceId = deviceId, FriendlyName = editFriendlyName.Trim() };
-      var (success, message) = await DeviceFunctionsOld.EditDeviceAsync(request);
-      if (success)
+      DeviceEdit? request = new DeviceEdit()
+      {
+        DeviceId = deviceId, 
+        NewFriendlyName = editFriendlyName.Trim()
+      };
+      ReturnStatusObject response = await DeviceFunctions.EditDevice(request);
+      
+      if (response.Success)
       {
         editingDeviceId = null;
         editFriendlyName = "";
@@ -517,7 +559,7 @@ private string confirmRemoveDeviceName = "";
       }
       else
       {
-        manageErrorMessage = message;
+        manageErrorMessage = response.Message;
       }
     }
     catch (Exception ex)
@@ -530,18 +572,27 @@ private string confirmRemoveDeviceName = "";
     }
   }
 
-  private async Task ToggleDeviceActive(DeviceInfo device)
+  private async Task ToggleDeviceActive(Device device)
   {
     isSubmitting = true;
     manageErrorMessage = null;
     try
     {
-      DeviceDeleteRequest? request = new DeviceDeleteRequest { DeviceId = device.DeviceId, IsActive = !device.IsActive };
-      var (success, message) = await DeviceFunctionsOld.SetDeviceActiveAsync(request);
-      if (success)
+      DeviceDelete? request = new DeviceDelete()
+      {
+        DeviceId = device.DeviceId
+      };
+      
+      ReturnStatusObject response = await DeviceFunctions.DeleteDevice(request);
+
+      if (response.Success)
+      {
         await LoadDevices();
+      }
       else
-        manageErrorMessage = message;
+      {
+        manageErrorMessage = response.Message;
+      }
     }
     catch (Exception ex)
     {
@@ -559,213 +610,243 @@ private string confirmRemoveDeviceName = "";
   }
 
   private async Task OpenManageGroups()
-{
-    showManageGroups = true;
-    groupErrorMessage = null;
-    editingGroupName = null;
-    newGroupName = "";
-    await LoadGroupsForManage();
-    await LoadDevices();
-}
-
-private void CloseManageGroups()
-{
-  showManageGroups = false;
-  groupErrorMessage = null;
-  editingGroupName = null;
-  editGroupNameValue = "";
-  newGroupName = "";
-}
-
-private async Task LoadGroupsForManage()
-{
-  isLoadingGroups = true;
-  try
   {
-    managedGroups = await DeviceFunctionsOld.GetDeviceGroupsAsync();
-  }
-  catch (Exception ex)
-  {
-    groupErrorMessage = ex.Message;
-  }
-  finally
-  {
-    isLoadingGroups = false;
-  }
-}
-
-private void StartEditGroup(string groupName)
-{
-  editingGroupName = groupName;
-  editGroupNameValue = groupName;
-  groupErrorMessage = null;
-}
-
-private void CancelEditGroup()
-{
-  editingGroupName = null;
-  editGroupNameValue = "";
-}
-
-private async Task SubmitEditGroup(string oldName)
-{
-  isSubmittingGroup = true;
-  groupErrorMessage = null;
-  try
-  {
-    GroupEditRequest? request = new GroupEditRequest { GroupName = oldName, NewGroupName = editGroupNameValue.Trim() };
-    var (success, message) = await DeviceFunctionsOld.EditGroupAsync(request);
-    if(success)
-    {
+      showFabMenu = false;
+      showManageGroups = true;
+      groupErrorMessage = null;
       editingGroupName = null;
-      editGroupNameValue = "";
-      await LoadGroupsForManage();
-      await LoadDashboardDataAsync();
-    }
-    else
-    {
-      groupErrorMessage = message;
-    }
-  }
-  catch(Exception ex)
-  {
-    groupErrorMessage = ex.Message;
-  }
-  finally
-  {
-    isSubmittingGroup = false;
-  }
-}
-
-private async Task DeleteGroup(string groupName)
-{
-  isSubmittingGroup = true;
-  groupErrorMessage = null;
-  try
-  {
-    var (success, message) = await DeviceFunctionsOld.DeleteGroupAsync(groupName);
-    if (success)
-    {
-      await LoadGroupsForManage();
-      await LoadDashboardDataAsync();
-    }
-    else
-    {
-      groupErrorMessage = message;
-    }
-  }
-  catch(Exception ex)
-  {
-    groupErrorMessage = ex.Message;
-  }
-  finally
-  {
-    isSubmittingGroup = false;
-  }
-}
-
-private async Task SubmitCreateGroup()
-{
-  isSubmittingGroup = true;
-  groupErrorMessage = null;
-  try
-  {
-    GroupCreateRequest? request = new GroupCreateRequest { GroupName = newGroupName.Trim() };
-    var (success, message) = await DeviceFunctionsOld.CreateGroupAsync(request);
-    if(success)
-    {
       newGroupName = "";
       await LoadGroupsForManage();
-      await LoadDashboardDataAsync();
-    }
-    else
+      await LoadDevices();
+  }
+
+  private void CloseManageGroups()
+  {
+    showManageGroups = false;
+    groupErrorMessage = null;
+    editingGroupName = null;
+    editGroupNameValue = "";
+    newGroupName = "";
+  }
+
+  private async Task LoadGroupsForManage()
+  {
+    isLoadingGroups = true;
+    try
     {
-      groupErrorMessage = message;
+      managedGroups = await GroupFunctions.GetAllGroups();
     }
-  }
-  catch (Exception ex)
-  {
-    groupErrorMessage = ex.Message;
-  }
-  finally
-  {
-    isSubmittingGroup = false;
-  }
-}
-
-private async Task AddDeviceToGroup(string groupName)
-{
-  isSubmittingGroup = true;
-  groupErrorMessage = null;
-
-  try
-  {
-    string deviceId = selectedDeviceIds.GetValueOrDefault(groupName,"");
-    GroupAddDeviceRequest? request = new GroupAddDeviceRequest { GroupName = groupName, DeviceId = deviceId };
-    var (success, message) = await DeviceFunctionsOld.AddDeviceToGroupAsync(request);
-
-    if(success)
+    catch (Exception ex)
     {
-      selectedDeviceIds.Remove(groupName);
-      await LoadGroupsForManage();
-      await LoadDashboardDataAsync();
-
+      groupErrorMessage = ex.Message;
     }
-    else
+    finally
     {
-      groupErrorMessage = message;
+      isLoadingGroups = false;
     }
   }
-  catch (Exception ex)
+
+  private void StartEditGroup(string groupName)
   {
-    groupErrorMessage = ex.Message;
+    editingGroupName = groupName;
+    editGroupNameValue = groupName;
+    groupErrorMessage = null;
   }
-  finally
+
+  private void CancelEditGroup()
   {
-    isSubmittingGroup = false;
+    editingGroupName = null;
+    editGroupNameValue = "";
   }
-}
 
-private void PromptRemoveDeviceFromGroup(string groupName, string deviceId, string deviceName)
-{
-  confirmRemoveGroupName = groupName;
-  confirmRemoveDeviceId = deviceId;
-  confirmRemoveDeviceName = deviceName;
-  showConfirmRemove = true;
-}
-
-private void CancelRemoveDeviceFromGroup()
-{
-  showConfirmRemove = false;
-  confirmRemoveGroupName = "";
-  confirmRemoveDeviceName = "";
-  confirmRemoveDeviceId = "";
-}
-
-private async Task ConfirmRemoveDeviceFromGroup()
-{
-  showConfirmRemove = false;
-  await RemoveDeviceFromGroup(confirmRemoveGroupName, confirmRemoveDeviceId);
-  confirmRemoveGroupName = "";
-  confirmRemoveDeviceId = "";
-  confirmRemoveDeviceName = "";
-}
-
-private async Task RemoveDeviceFromGroup(string groupName, string deviceId)
-{
-  try
+  private async Task SubmitEditGroup(string oldName)
   {
-    GroupAddDeviceRequest? request = new GroupAddDeviceRequest { GroupName = groupName, DeviceId = deviceId };
-    var (success, message) = await DeviceFunctionsOld.RemoveDeviceFromGroupAsync(request);
-    
-    if(success)
+    isSubmittingGroup = true;
+    groupErrorMessage = null;
+    try
     {
-      await LoadDashboardDataAsync();
+      GroupEdit? request = new GroupEdit()
+      {
+        Name = oldName, 
+        NewName = editGroupNameValue.Trim()
+      };
+      
+      ReturnStatusObject response = await GroupFunctions.EditGroup(request);
+      
+      if(response.Success)
+      {
+        editingGroupName = null;
+        editGroupNameValue = "";
+        await LoadGroupsForManage();
+        await LoadDashboardDataAsync();
+      }
+      else
+      {
+        groupErrorMessage = response.Message;
+      }
+    }
+    catch(Exception ex)
+    {
+      groupErrorMessage = ex.Message;
+    }
+    finally
+    {
+      isSubmittingGroup = false;
     }
   }
-  catch(Exception ex)
+
+  private async Task DeleteGroup(string groupName)
   {
-    _=ex;
+    isSubmittingGroup = true;
+    groupErrorMessage = null;
+    try
+    {
+      ReturnStatusObject response = await GroupFunctions.DeleteGroup(groupName);
+      
+      if (response.Success)
+      {
+        await LoadGroupsForManage();
+        await LoadDashboardDataAsync();
+      }
+      else
+      {
+        groupErrorMessage = response.Message;
+      }
+    }
+    catch(Exception ex)
+    {
+      groupErrorMessage = ex.Message;
+    }
+    finally
+    {
+      isSubmittingGroup = false;
+    }
   }
-}
+
+  private async Task SubmitCreateGroup()
+  {
+    isSubmittingGroup = true;
+    groupErrorMessage = null;
+    try
+    {
+      GroupCreate? request = new GroupCreate
+      {
+        Name = newGroupName.Trim()
+      };
+      
+      ReturnStatusObject response = await GroupFunctions.CreateGroup(request);
+      
+      if(response.Success)
+      {
+        newGroupName = "";
+        await LoadGroupsForManage();
+        await LoadDashboardDataAsync();
+      }
+      else
+      {
+        groupErrorMessage = response.Message;
+      }
+    }
+    catch (Exception ex)
+    {
+      groupErrorMessage = ex.Message;
+    }
+    finally
+    {
+      isSubmittingGroup = false;
+    }
+  }
+
+  private async Task AddDeviceToGroup(string groupName)
+  {
+    isSubmittingGroup = true;
+    groupErrorMessage = null;
+
+    try
+    {
+      string deviceId = selectedDeviceIds.GetValueOrDefault(groupName,"");
+      
+      GroupManageDevice? request = new GroupManageDevice
+      {
+        Name = groupName, 
+        DeviceId = deviceId
+      };
+      
+      ReturnStatusObject response = await GroupFunctions.AddDeviceToGroup(request);
+
+      if(response.Success)
+      {
+        selectedDeviceIds.Remove(groupName);
+        await LoadGroupsForManage();
+        await LoadDashboardDataAsync();
+      }
+      else
+      {
+        groupErrorMessage = response.Message;
+      }
+    }
+    catch (Exception ex)
+    {
+      groupErrorMessage = ex.Message;
+    }
+    finally
+    {
+      isSubmittingGroup = false;
+    }
+  }
+
+  private void PromptRemoveDeviceFromGroup(string groupName, string deviceId, string deviceName)
+  {
+    confirmRemoveGroupName = groupName;
+    confirmRemoveDeviceId = deviceId;
+    confirmRemoveDeviceName = deviceName;
+    showConfirmRemove = true;
+  }
+
+  private void CancelRemoveDeviceFromGroup()
+  {
+    showConfirmRemove = false;
+    confirmRemoveGroupName = "";
+    confirmRemoveDeviceName = "";
+    confirmRemoveDeviceId = "";
+  }
+
+  private async Task ConfirmRemoveDeviceFromGroup()
+  {
+    showConfirmRemove = false;
+    await RemoveDeviceFromGroup(confirmRemoveGroupName, confirmRemoveDeviceId);
+    confirmRemoveGroupName = "";
+    confirmRemoveDeviceId = "";
+    confirmRemoveDeviceName = "";
+  }
+
+  private async Task RemoveDeviceFromGroup(string groupName, string deviceId)
+  {
+    try
+    {
+      GroupManageDevice? request = new GroupManageDevice
+      {
+        Name = groupName, 
+        DeviceId = deviceId
+      };
+      
+     ReturnStatusObject response = await GroupFunctions.RemoveDeviceFromGroup(request);
+      
+      if(response.Success)
+      {
+        await LoadDashboardDataAsync();
+      }
+    }
+    catch(Exception ex)
+    {
+      _=ex;
+    }
+  }
+
+  private bool showFabMenu = false;
+
+  private void ToggleFabMenu()
+  {
+      showFabMenu = !showFabMenu;
+  }
 }

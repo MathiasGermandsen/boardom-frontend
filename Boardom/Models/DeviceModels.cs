@@ -51,6 +51,6 @@ public sealed class Device
     [JsonProperty("lastHeartbeat")]
     public DateTime LastHeartbeat { get; set; }
     
-    [JsonProperty("sensorReadings")]
-    public List<SensorReading> SensorReadings { get; set; } = new List<SensorReading>();
+    [JsonProperty("latestSensorReading")]
+    public SensorReading LatestReading { get; set; } = new SensorReading();
 }

@@ -151,7 +151,7 @@
           </div>
           <div class="sensor-data">
             @{
-              var disabled = !DeviceStatus.StatusList[device.DeviceId] || device.SensorReadings[0] is null;
+              var disabled = !DeviceStatus.StatusList[device.DeviceId] || device.LatestReading is null;
             }
             @foreach (var sensor in SensorDefinitions)
             {
@@ -160,7 +160,7 @@
                   <span class="sensor-icon">@sensor.Icon</span>
                   <span class="sensor-label">@sensor.Label</span>
                 </div>
-                <span class="sensor-value">@sensor.Format(device.SensorReadings[0])</span>
+                <span class="sensor-value">@sensor.Format(device.LatestReading)</span>
               </div>
             }
           </div>
