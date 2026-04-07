@@ -65,7 +65,7 @@ builder.Services.AddHttpClient("DatabaseApi", client =>
 
 builder.Services.AddHttpClient("PowerApi", client =>
 {
-  client.BaseAddress = new Uri("http://10.133.51.103:9090");
+  client.BaseAddress = new Uri(builder.Configuration["ApiSettings:PowerApiUrl"]!);
   client.Timeout = TimeSpan.FromSeconds(10);
 });
 
