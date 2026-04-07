@@ -1,10 +1,10 @@
 ﻿@page "/home"
 @using Microsoft.AspNetCore.Components.Authorization;
 @using Microsoft.AspNetCore.Authorization;
-@using Boardom.Models
-@using Boardom.Services
 @using Microsoft.IdentityModel.Abstractions
 @using System.Runtime.CompilerServices
+@using Boardom.Models
+@using Boardom.Services
 @implements IDisposable
 @inject PendingDeviceStore PendingDeviceStore
 @inject NavigationManager NavigationManager
@@ -194,7 +194,7 @@ else
                 <div class="manage-device-info">
                   <span class="device-friendly-name">@device.FriendlyName</span>
                   <span class="device-id-small">@device.DeviceId</span>
-                  <span class="device-state @(!device.IsActive ? "online" : "offline")">
+                  <span class="device-state @(!DeviceStatus.StatusList[device.DeviceId] ? "online" : "offline")">
                   @if (DeviceStatus.StatusList[device.DeviceId])
                   {
                     <p style="font-weight: bold; color:#047857; ">● Online</p>
@@ -274,7 +274,7 @@ else
                   <option value="">— Add device —</option>
                   @if (devices != null)
                   {
-                    @foreach (DeviceInfo d in devices)
+                    @foreach (Device d in devices)
                     {
                       <option value="@d.DeviceId">@d.FriendlyName</option>
                     }
@@ -318,7 +318,7 @@ else
   <div class="add-device-overlay">
     <div class="add-device-modal" @onclick:stopPropagation="true">
       <h1 class="add-device-title">REMOVE DEVICE</h1>
-      <p style="color:#e8eef7;margin-bottom:1.5rem;">
+      <p style="color:#e8eef7;margin-bottom:1.5rem; text-align: center">
         Remove <strong>@confirmRemoveDeviceName</strong> from this group?
       </p>
       <div class="add-device-actions">
@@ -362,13 +362,13 @@ else
   private string newGroupName = "";
   private string? groupErrorMessage;
   private bool isSubmittingGroup;
-private Dictionary<string, string> selectedDeviceIds = new();
+  private Dictionary<string, string> selectedDeviceIds = new();
 
 // --------------- remove from group confirmation pop up ---------------
-private bool showConfirmRemove;
-private string confirmRemoveGroupName = "";
-private string confirmRemoveDeviceId = "";
-private string confirmRemoveDeviceName = "";
+  private bool showConfirmRemove;
+  private string confirmRemoveGroupName = "";
+  private string confirmRemoveDeviceId = "";
+  private string confirmRemoveDeviceName = "";
 
   private static readonly (string Icon, string Label, Func<SensorReading?, string> Format)[] SensorDefinitions =
   {
@@ -609,8 +609,8 @@ private string confirmRemoveDeviceName = "";
     PendingDeviceStore.Changed -= HandlePendingChanged;
   }
 
-private async Task OpenManageGroups()
-{
+  private async Task OpenManageGroups()
+  {
     showFabMenu = false;
     showManageGroups = true;
     groupErrorMessage = null;
@@ -618,29 +618,6 @@ private async Task OpenManageGroups()
     newGroupName = "";
     await LoadGroupsForManage();
     await LoadDevices();
-}
-
-private void CloseManageGroups()
-{
-  showManageGroups = false;
-  groupErrorMessage = null;
-  editingGroupName = null;
-  editGroupNameValue = "";
-  newGroupName = "";
-}
-
-private async Task LoadGroupsForManage()
-{
-  isLoadingGroups = true;
-  try
-  {
-      showFabMenu = false;
-      showManageGroups = true;
-      groupErrorMessage = null;
-      editingGroupName = null;
-      newGroupName = "";
-      await LoadGroupsForManage();
-      await LoadDevices();
   }
 
   private void CloseManageGroups()
@@ -865,14 +842,6 @@ private async Task LoadGroupsForManage()
       _=ex;
     }
   }
-
-  private bool showFabMenu = false;
-
-  private void ToggleFabMenu()
-  {
-      showFabMenu = !showFabMenu;
-  }
-}
 
   private bool showFabMenu = false;
 
