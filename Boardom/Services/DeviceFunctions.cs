@@ -93,6 +93,8 @@ public sealed class DeviceFunctions
             return returnStatus;
         }
         
+        
+        
         response = await _httpClient.PostAsJsonAsync(FetchUrl(APIRequest.ADD), request);
         string result = await response.Content.ReadAsStringAsync();
 

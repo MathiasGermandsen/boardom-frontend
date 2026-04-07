@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using Boardom.Models;
 using System.Text;
+using Newtonsoft.Json.Linq;
 
 namespace Boardom.Services;
 
@@ -34,15 +35,24 @@ public class DataFunctions
         
         HttpResponseMessage response = await _httpClient.GetAsync(url);
         string result = await response.Content.ReadAsStringAsync();
-
+        
         if (!response.IsSuccessStatusCode)
         {
             _logger.LogError($"Error fetching sensor data: {result}");
             return null;
         }
-        
-        List<SensorReading> readings = JsonConvert.DeserializeObject<List<SensorReading>>(result) ??  new List<SensorReading>();
 
+        List<SensorReading> readings = new List<SensorReading>();
+
+        try
+        {
+            readings = JsonConvert.DeserializeObject<List<SensorReading>>(result) ?? new List<SensorReading>();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Error: No Data {ex.Message}");
+        }
+            
         if (readings?.Count > 0)
         {
             return readings!;
@@ -51,8 +61,8 @@ public class DataFunctions
         {
             _logger.LogError("No sensor data found");
         }
-        
-        return new List<SensorReading>();
+
+        return readings;
     }
 
     public async Task<SensorReading?> GetLatestSensorDataAsync(string deviceId)

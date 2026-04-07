@@ -169,7 +169,10 @@ public class GroupFunctions
             return returnStatus;
         }
 
-        HttpResponseMessage response = await _httpClient.PostAsJsonAsync(FetchUrl(APIRequest.ADD_DEVICE), request);
+        string json = JsonConvert.SerializeObject(request);
+        StringContent content = new StringContent(json, Encoding.UTF8, "application/json");
+
+        HttpResponseMessage response = await _httpClient.PostAsync(FetchUrl(APIRequest.ADD_DEVICE), content);
         string result = await response.Content.ReadAsStringAsync();
 
         if (response.IsSuccessStatusCode)
@@ -179,7 +182,14 @@ public class GroupFunctions
         }
         else
         {
-            returnStatus.Message = "Failed to add device";
+            if (result.Contains("already"))
+            {
+                returnStatus.Message = "Device is already in group";
+            }
+            else
+            {
+                returnStatus.Message = "Failed to add device";
+            }
         }
 
         return returnStatus;
@@ -202,11 +212,26 @@ public class GroupFunctions
             return returnStatus;
         }
 
-        HttpRequestMessage httpRequest = new HttpRequestMessage(HttpMethod.Delete, FetchUrl(APIRequest.DELETE_FROM))
-        {
-            Content = JsonContent.Create(request)
-        };
+        string json = JsonConvert.SerializeObject(request);
 
+        HttpRequestMessage httpRequest = new HttpRequestMessage();
+
+        string urlString = _httpClient.BaseAddress + FetchUrl(APIRequest.DELETE_FROM);
+        
+        try
+        {
+            httpRequest = new HttpRequestMessage
+            {
+                Method = HttpMethod.Delete,
+                RequestUri = new Uri(urlString),
+                Content = new StringContent(json, Encoding.UTF8, "application/json")
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex.Message);    
+        }
+        
         HttpResponseMessage response = await _httpClient.SendAsync(httpRequest);
         string result = await response.Content.ReadAsStringAsync();
 

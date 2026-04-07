@@ -271,8 +271,13 @@
                     EndDate = endDate,
                     Page = currentPage,
                 };
-                
-                allData.AddRange(await DataFunctions.GetData(dataRequest));
+
+                List<SensorReading> newData = await DataFunctions.GetData(dataRequest);
+
+                if (newData.Count > 0)
+                {
+                    allData.AddRange(newData);
+                }
                 
                 if (allData.Count < (100 * currentPage))
                 {
