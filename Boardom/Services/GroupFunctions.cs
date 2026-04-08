@@ -264,7 +264,7 @@ public class GroupFunctions
 
      private async Task AttachTokenAsync()
     {
-        var token = await _tokenService.GetAccessTokenAsync();
+        string? token = await _tokenService.GetAccessTokenAsync();
         _httpClient.DefaultRequestHeaders.Authorization =
             new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
     }

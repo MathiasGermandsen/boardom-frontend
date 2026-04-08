@@ -161,7 +161,7 @@ public sealed class DeviceFunctions
     public async Task<ReturnStatusObject> DeleteDevice(DeviceDelete request)
     {
         await AttachTokenAsync();
-        
+
         ReturnStatusObject returnStatus = new ReturnStatusObject();
         returnStatus.Success = false;
         
@@ -196,7 +196,7 @@ public sealed class DeviceFunctions
     //JWT Token method
     private async Task AttachTokenAsync()
     {
-        var token = await _tokenService.GetAccessTokenAsync();
+        string? token = await _tokenService.GetAccessTokenAsync();
         _httpClient.DefaultRequestHeaders.Authorization =
             new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
     }
