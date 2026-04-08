@@ -18,17 +18,14 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 // application services
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddSingleton<PendingDeviceStore>();
 builder.Services.AddSingleton<PowerService>();
-builder.Services.AddScoped<Boardom.Services.DeviceFunctions>();
-builder.Services.AddScoped<Boardom.Services.DataFunctions>();
-builder.Services.AddScoped<Boardom.Services.GroupFunctions>();
-builder.Services.AddHttpContextAccessor();
-builder.Services.AddScoped<ApiTokenService>();
-
-// DeviceStatus is a background worker but we also need to inject it into components
-builder.Services.AddSingleton<DeviceStatus>();
-builder.Services.AddHostedService(sp => sp.GetRequiredService<DeviceStatus>());
+builder.Services.AddScoped<DeviceFunctions>();
+builder.Services.AddScoped<DataFunctions>();
+builder.Services.AddScoped<GroupFunctions>();
+builder.Services.AddSingleton<ApiTokenService>();
+builder.Services.AddScoped<DeviceStatus>();
 
 builder.Services.AddResponseCompression(options =>
 {

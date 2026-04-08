@@ -77,7 +77,7 @@ public sealed class DeviceFunctions
             return returnStatus;
         }
 
-        if (string.IsNullOrWhiteSpace(request.DeviceId))
+        if (string.IsNullOrWhiteSpace(request.Id))
         {
             returnStatus.Message = "Device ID is empty";
             return returnStatus;
@@ -89,7 +89,7 @@ public sealed class DeviceFunctions
             return returnStatus;
         }
         
-        string encodedDevId = Uri.EscapeDataString(request.DeviceId);
+        string encodedDevId = Uri.EscapeDataString(request.Id);
         
         HttpResponseMessage response = await _httpClient.GetAsync(FetchUrl(APIRequest.GET, encodedDevId));
 
@@ -128,7 +128,7 @@ public sealed class DeviceFunctions
             return returnStatus;
         }
         
-        if (string.IsNullOrWhiteSpace(request.DeviceId))
+        if (string.IsNullOrWhiteSpace(request.Id))
         {
             returnStatus.Message = "Device ID is empty";
             return returnStatus;
@@ -170,13 +170,13 @@ public sealed class DeviceFunctions
             return returnStatus;
         }
 
-        if (string.IsNullOrWhiteSpace(request.DeviceId))
+        if (string.IsNullOrWhiteSpace(request.Id))
         {
             returnStatus.Message = "Device ID is empty";
             return returnStatus;
         }
         
-        string encodedDeviceId = Uri.EscapeDataString(request.DeviceId);
+        string encodedDeviceId = Uri.EscapeDataString(request.Id);
         
         HttpResponseMessage response = await _httpClient.DeleteAsync(FetchUrl(APIRequest.DELETE, encodedDeviceId));
 

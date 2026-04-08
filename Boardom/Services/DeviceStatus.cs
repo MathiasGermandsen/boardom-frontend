@@ -5,38 +5,25 @@ using Boardom.Services;
 
 namespace Boardom.Services;
 
-public class DeviceStatus : BackgroundService
+public class DeviceStatus
 {
     private readonly ILogger<DeviceStatus> _logger;
+    private readonly HttpClient _httpClient;
+    private readonly DeviceFunctions _deviceFunctions;
     private Dictionary<string, bool> _statusList = new Dictionary<string, bool>();
 
-    private DeviceFunctions _deviceFunctions;
+    private Timer? _timer;
 
 
-    public DeviceStatus(ILogger<DeviceStatus> logger, DeviceFunctions deviceFunctions)
+    public DeviceStatus(IHttpClientFactory httpClientFactory, ILogger<DeviceStatus> logger, DeviceFunctions deviceFunctions)
     {
+        _httpClient = httpClientFactory.CreateClient("DatabaseApi");
         _logger = logger;
         _deviceFunctions = deviceFunctions;
     }
 
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-    {
-        while (!stoppingToken.IsCancellationRequested)
-        {
-            try
-            {
-                await DeviceCheckAsync(stoppingToken);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error during background check");
-            }
 
-            await Task.Delay(TimeSpan.FromSeconds(60), stoppingToken);
-        }
-    }
-
-    private async Task DeviceCheckAsync(CancellationToken cancellationToken)
+    public async Task DeviceCheckAsync()
     {
         _statusList.Clear();
 
@@ -67,9 +54,10 @@ public class DeviceStatus : BackgroundService
         return _statusList[deviceId];
     }
 
-    public async Task<int> CountStatus(bool boolValue)
+    public int CountStatus(bool boolValue)
     {
-        return _statusList.Count(x => x.Value == boolValue);
+        int count = _statusList.Count(x => x.Value == boolValue);
+        return count;
     }
 }
 

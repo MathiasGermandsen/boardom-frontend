@@ -379,7 +379,7 @@ else
     };
 
   protected override async Task OnInitializedAsync()
-  {
+  {    
     PendingDeviceStore.Changed += HandlePendingChanged;
     pendingDeviceId = PendingDeviceStore.PendingDeviceId;
 
@@ -462,7 +462,7 @@ else
     {
       DeviceAdd? request = new DeviceAdd()
       {
-        DeviceId = pendingDeviceId!, 
+        Id = pendingDeviceId!, 
         FriendlyName = friendlyName
       };
       
@@ -546,7 +546,7 @@ else
     {
       DeviceEdit? request = new DeviceEdit()
       {
-        DeviceId = deviceId, 
+        Id = deviceId, 
         NewFriendlyName = editFriendlyName.Trim()
       };
       ReturnStatusObject response = await DeviceFunctions.EditDevice(request);
@@ -580,7 +580,7 @@ else
     {
       DeviceDelete? request = new DeviceDelete()
       {
-        DeviceId = device.DeviceId
+        Id = device.DeviceId
       };
       
       ReturnStatusObject response = await DeviceFunctions.DeleteDevice(request);

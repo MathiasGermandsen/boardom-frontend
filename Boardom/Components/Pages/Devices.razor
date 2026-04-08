@@ -184,6 +184,7 @@
 
   protected override async Task OnInitializedAsync()
   {
+    await DeviceStatus.DeviceCheckAsync();
     await LoadDevicesAsync();
   }
 
