@@ -11,9 +11,20 @@ public class ApiTokenService
         _httpContextAccessor = httpContextAccessor;
     }
 
-    public async Task <string?> GetAccessTokenAsync()
+    private async Task <string?> GetAccessTokenAsync()
     {
-        return await _httpContextAccessor.HttpContext!
-            .GetTokenAsync("access_token");
+        return await _httpContextAccessor.HttpContext!.GetTokenAsync("access_token");
+    }
+
+    public async Task AttachToken(HttpClient client)
+    {
+        string token = await GetAccessTokenAsync();
+
+        if (string.IsNullOrEmpty(token))
+        {
+            return;
+        }
+
+        client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
     }
 }

@@ -122,12 +122,12 @@
       <div class="stat-card">
       <div class="stat-icon">●</div>
         <span class="stat-label">ONLINE</span>
-        <span class="stat-value">@DeviceStatus.StatusList.Count(x => x.Value)</span>      
+        <span class="stat-value">@DeviceStatus.CountStatus(true)</span>      
       </div>
       <div class="stat-card">
       <div class="stat-icon">●</div>
         <span class="stat-label">OFFLINE</span>
-        <span class="stat-value">@DeviceStatus.StatusList.Count(x => !x.Value)</span>      
+        <span class="stat-value">@DeviceStatus.CountStatus(false)</span>      
       </div>
     </div>
 
@@ -140,7 +140,7 @@
               <h3>@device.FriendlyName</h3>
               <div class="device-id-label">@device.DeviceId</div>
             </div>
-            @if (DeviceStatus.StatusList[device.DeviceId])
+            @if (DeviceStatus.IsOnline(device.DeviceId))
             {
               <span class="device-status online">● Online</span>
             }
@@ -151,7 +151,7 @@
           </div>
           <div class="sensor-data">
             @{
-              var disabled = !DeviceStatus.StatusList[device.DeviceId] || device.LatestReading is null;
+              bool disabled = !DeviceStatus.IsOnline(device.DeviceId) || device.LatestReading is null;
             }
             @foreach (var sensor in SensorDefinitions)
             {
@@ -193,17 +193,6 @@
     try
     {
       devices = await DeviceFunctions.GetAllDevices();
-
-      // IEnumerable<Task>? tasks = devices?.Select(async d =>
-      // {
-      //   d.SensorReadings[0] = await DeviceService.GetLatestSensorDataAsync(d.DeviceId);
-      // });
-      //
-      // if (tasks!.Count() != 0)
-      // {
-      //     await Task.WhenAll(tasks!);
-      //
-      // }
     }
     finally
     {

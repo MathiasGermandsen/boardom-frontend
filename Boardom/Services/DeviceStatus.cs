@@ -8,14 +8,15 @@ namespace Boardom.Services;
 public class DeviceStatus : BackgroundService
 {
     private readonly ILogger<DeviceStatus> _logger;
-    private readonly HttpClient _httpClient;
-    public Dictionary<string, bool> StatusList = new Dictionary<string, bool>();
+    private Dictionary<string, bool> _statusList = new Dictionary<string, bool>();
+
+    private DeviceFunctions _deviceFunctions;
 
 
-    public DeviceStatus(IHttpClientFactory httpClientFactory, ILogger<DeviceStatus> logger)
+    public DeviceStatus(ILogger<DeviceStatus> logger, DeviceFunctions deviceFunctions)
     {
-        _httpClient = httpClientFactory.CreateClient("DatabaseApi");
         _logger = logger;
+        _deviceFunctions = deviceFunctions;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -37,20 +38,38 @@ public class DeviceStatus : BackgroundService
 
     private async Task DeviceCheckAsync(CancellationToken cancellationToken)
     {
-        StatusList.Clear();
+        _statusList.Clear();
 
         _logger.LogInformation("Running Device Check");
 
-        string raw = await _httpClient.GetStringAsync("Device/getAll");
-
-        List<Device> allDevices = JsonConvert.DeserializeObject<List<Device>>(raw) ?? new List<Device>();
+        List<Device> allDevices = await _deviceFunctions.GetAllDevices();
         
         foreach (Device dev in allDevices)
         {
             bool online = DateTime.UtcNow - dev.LastHeartbeat <= TimeSpan.FromMinutes(4);
 
-            StatusList.Add(dev.DeviceId, online);    
+            _statusList.Add(dev.DeviceId, online);    
         }
+    }
+
+    public bool IsOnline(string deviceId)
+    {
+        if (!_statusList.Any())
+        {
+            return false;
+        }
+
+        if (!_statusList.Keys.Contains(deviceId))
+        {
+            return false;
+        }
+
+        return _statusList[deviceId];
+    }
+
+    public async Task<int> CountStatus(bool boolValue)
+    {
+        return _statusList.Count(x => x.Value == boolValue);
     }
 }
 

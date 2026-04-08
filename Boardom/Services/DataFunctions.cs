@@ -23,7 +23,7 @@ public class DataFunctions
 
     public async Task<List<SensorReading>> GetData(DataRetrieval request)
     {
-        await AttachTokenAsync();
+        await _tokenService.AttachToken(_httpClient);
 
         if (string.IsNullOrWhiteSpace(request.DeviceId))
         {
@@ -72,7 +72,7 @@ public class DataFunctions
 
     public async Task<SensorReading?> GetLatestSensorDataAsync(string deviceId)
     {
-        await AttachTokenAsync();
+        await _tokenService.AttachToken(_httpClient);
 
         if (string.IsNullOrWhiteSpace(deviceId))
         {
@@ -101,13 +101,5 @@ public class DataFunctions
         }
         
         return reading;
-    }
-
-    //JWT token method
-    private async Task AttachTokenAsync()
-    {
-        string? token = await _tokenService.GetAccessTokenAsync();
-        _httpClient.DefaultRequestHeaders.Authorization =
-            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
     }
 }
