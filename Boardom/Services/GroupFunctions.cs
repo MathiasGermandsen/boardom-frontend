@@ -58,8 +58,8 @@ public class GroupFunctions
         
         if (!response.IsSuccessStatusCode)
         {
-            _logger.LogError($"{response.StatusCode.ToString()} {response.ReasonPhrase}");
-            return null;
+            _logger.LogError($"{response.StatusCode.ToString()} - [{FetchUrl(APIRequest.GET_ALL)}]");
+            return new List<Group>();
         }
         
         string result = await response.Content.ReadAsStringAsync();
