@@ -49,12 +49,12 @@ public sealed class DeviceFunctions
     public async Task<List<Device>> GetAllDevices()
     {
         await AttachTokenAsync();
-        HttpResponseMessage response = await _httpClient.GetAsync(FetchUrl(APIRequest.GET, "getAll"));
+        HttpResponseMessage response = await _httpClient.GetAsync(FetchUrl(APIRequest.GET_ALL));
 
         if (!response.IsSuccessStatusCode)
         {
-            _logger.LogError($"{response.StatusCode.ToString()} {response.ReasonPhrase}");
-            return null;
+            _logger.LogError($"{response.StatusCode.ToString()} - [{FetchUrl(APIRequest.GET_ALL)}]");
+            return new List<Device>();
         }
         
         string result = await response.Content.ReadAsStringAsync();
@@ -98,8 +98,6 @@ public sealed class DeviceFunctions
             returnStatus.Message = "Device already exists!";
             return returnStatus;
         }
-        
-        
         
         response = await _httpClient.PostAsJsonAsync(FetchUrl(APIRequest.ADD), request);
         string result = await response.Content.ReadAsStringAsync();
@@ -183,7 +181,7 @@ public sealed class DeviceFunctions
 
         if (!response.IsSuccessStatusCode)
         {
-            _logger.LogError($"{response.StatusCode.ToString()} {response.ReasonPhrase}");
+            _logger.LogError($"{response.StatusCode.ToString()} - [{FetchUrl(APIRequest.DELETE)}]");
             returnStatus.Message = "Failed to delete Device";
             return returnStatus;
         }
