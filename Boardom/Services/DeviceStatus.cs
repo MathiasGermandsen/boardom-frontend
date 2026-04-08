@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Hosting;
 using Boardom.Models;
 using Newtonsoft.Json;
+using Boardom.Services;
 
 namespace Boardom.Services;
 

@@ -8,6 +8,7 @@ public class GroupFunctions
 {
     private readonly HttpClient _httpClient;
     private readonly PendingDeviceStore _pendingDeviceStore;
+    private readonly ApiTokenService _tokenService;
     private readonly ILogger<DeviceFunctions> _logger;
     
     private enum APIRequest
@@ -20,11 +21,12 @@ public class GroupFunctions
         DELETE_FROM
     }
     
-    public GroupFunctions(IHttpClientFactory httpClientFactory, PendingDeviceStore pendingDeviceStore, ILogger<DeviceFunctions> logger)
+    public GroupFunctions(IHttpClientFactory httpClientFactory, PendingDeviceStore pendingDeviceStore, ILogger<DeviceFunctions> logger, ApiTokenService tokenService)
     {
         _httpClient = httpClientFactory.CreateClient("DatabaseApi");
         _pendingDeviceStore = pendingDeviceStore;
         _logger = logger;
+        _tokenService = tokenService;
     }
     
     private string FetchUrl(APIRequest req, string param = "")
@@ -50,6 +52,8 @@ public class GroupFunctions
 
     public async Task<List<Group>> GetAllGroups()
     {
+        await AttachTokenAsync();
+
         HttpResponseMessage response = await _httpClient.GetAsync(FetchUrl(APIRequest.GET_ALL));
         
         if (!response.IsSuccessStatusCode)
@@ -65,6 +69,8 @@ public class GroupFunctions
 
     public async Task<ReturnStatusObject> CreateGroup(GroupCreate request)
     {
+        await AttachTokenAsync();
+
         ReturnStatusObject returnStatus = new ReturnStatusObject();
         returnStatus.Success = false;
         
@@ -95,6 +101,8 @@ public class GroupFunctions
 
     public async Task<ReturnStatusObject> EditGroup(GroupEdit request)
     {
+        await AttachTokenAsync();
+
         ReturnStatusObject returnStatus = new ReturnStatusObject();
         returnStatus.Success = false;
 
@@ -125,6 +133,8 @@ public class GroupFunctions
 
     public async Task<ReturnStatusObject> DeleteGroup(string name)
     {
+        await AttachTokenAsync();
+
         ReturnStatusObject returnStatus = new ReturnStatusObject();
         returnStatus.Success = false;
         
@@ -154,6 +164,8 @@ public class GroupFunctions
 
     public async Task<ReturnStatusObject> AddDeviceToGroup(GroupManageDevice request)
     {
+        await AttachTokenAsync();
+
         ReturnStatusObject returnStatus = new ReturnStatusObject();
         returnStatus.Success = false;
 
@@ -197,6 +209,8 @@ public class GroupFunctions
 
     public async Task<ReturnStatusObject> RemoveDeviceFromGroup(GroupManageDevice request)
     {
+        await AttachTokenAsync();
+        
         ReturnStatusObject returnStatus = new ReturnStatusObject();
         returnStatus.Success = false;
 
@@ -246,5 +260,12 @@ public class GroupFunctions
         }
 
         return returnStatus;
+    }
+
+     private async Task AttachTokenAsync()
+    {
+        string? token = await _tokenService.GetAccessTokenAsync();
+        _httpClient.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
     }
 }

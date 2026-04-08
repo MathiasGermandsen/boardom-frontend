@@ -8,7 +8,9 @@ public sealed class DeviceFunctions
 {
     private readonly HttpClient _httpClient;
     private readonly PendingDeviceStore _pendingDeviceStore;
+    private readonly ApiTokenService _tokenService;
     private readonly ILogger<DeviceFunctions> _logger;
+
     
     private enum APIRequest
     {
@@ -19,11 +21,12 @@ public sealed class DeviceFunctions
         DELETE,
     }
 
-    public DeviceFunctions(IHttpClientFactory httpClientFactory, PendingDeviceStore pendingDeviceStore, ILogger<DeviceFunctions> logger)
+    public DeviceFunctions(IHttpClientFactory httpClientFactory, PendingDeviceStore pendingDeviceStore, ILogger<DeviceFunctions> logger, ApiTokenService tokenService)
     {
         _httpClient = httpClientFactory.CreateClient("DatabaseApi");
         _pendingDeviceStore = pendingDeviceStore;
         _logger = logger;
+        _tokenService = tokenService;
     }
 
     private string FetchUrl(APIRequest req, string param = "")
@@ -45,6 +48,7 @@ public sealed class DeviceFunctions
         
     public async Task<List<Device>> GetAllDevices()
     {
+        await AttachTokenAsync();
         HttpResponseMessage response = await _httpClient.GetAsync(FetchUrl(APIRequest.GET, "getAll"));
 
         if (!response.IsSuccessStatusCode)
@@ -61,6 +65,8 @@ public sealed class DeviceFunctions
 
     public async Task<ReturnStatusObject> AddDevice(DeviceAdd request)
     {
+        await AttachTokenAsync();
+
         ReturnStatusObject returnStatus = new ReturnStatusObject();
         returnStatus.Success = false;
         
@@ -112,6 +118,8 @@ public sealed class DeviceFunctions
 
     public async Task<ReturnStatusObject> EditDevice(DeviceEdit request)
     {
+        await AttachTokenAsync();
+
         ReturnStatusObject returnStatus = new ReturnStatusObject();
         returnStatus.Success = false;
 
@@ -152,6 +160,8 @@ public sealed class DeviceFunctions
     
     public async Task<ReturnStatusObject> DeleteDevice(DeviceDelete request)
     {
+        await AttachTokenAsync();
+
         ReturnStatusObject returnStatus = new ReturnStatusObject();
         returnStatus.Success = false;
         
@@ -181,5 +191,13 @@ public sealed class DeviceFunctions
         returnStatus.Success = true;
         returnStatus.Message = "Device deleted";
         return returnStatus;
+    }
+
+    //JWT Token method
+    private async Task AttachTokenAsync()
+    {
+        string? token = await _tokenService.GetAccessTokenAsync();
+        _httpClient.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
     }
 }

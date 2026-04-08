@@ -37,4 +37,7 @@ public sealed class Group
     
     [JsonProperty("devices")]
     public List<Device> Devices { get; set; } = new List<Device>();
+
+    [JsonProperty("userId")]
+    public string UserId { get; set; } = string.Empty;
 }

@@ -31,6 +31,6 @@ public IActionResult Connect([FromBody] DeviceConnect request)
     return BadRequest(new { success = false, message = "Device ID is required"});
 
     _pendingDeviceStore.SetConnected(request.DeviceId);
-    return Ok(new { success = true });
+    return Ok(new { success = true }); // add return jwt too
   }
 }
