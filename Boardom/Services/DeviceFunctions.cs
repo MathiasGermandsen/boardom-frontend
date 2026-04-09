@@ -48,7 +48,8 @@ public sealed class DeviceFunctions
         
     public async Task<List<Device>> GetAllDevices()
     {
-        await AttachTokenAsync();
+        await _tokenService.AttachToken(_httpClient);
+
         HttpResponseMessage response = await _httpClient.GetAsync(FetchUrl(APIRequest.GET_ALL));
 
         if (!response.IsSuccessStatusCode)
@@ -65,7 +66,7 @@ public sealed class DeviceFunctions
 
     public async Task<ReturnStatusObject> AddDevice(DeviceAdd request)
     {
-        await AttachTokenAsync();
+        await _tokenService.AttachToken(_httpClient);
 
         ReturnStatusObject returnStatus = new ReturnStatusObject();
         returnStatus.Success = false;
@@ -116,7 +117,7 @@ public sealed class DeviceFunctions
 
     public async Task<ReturnStatusObject> EditDevice(DeviceEdit request)
     {
-        await AttachTokenAsync();
+        await _tokenService.AttachToken(_httpClient);
 
         ReturnStatusObject returnStatus = new ReturnStatusObject();
         returnStatus.Success = false;
@@ -158,7 +159,7 @@ public sealed class DeviceFunctions
     
     public async Task<ReturnStatusObject> DeleteDevice(DeviceDelete request)
     {
-        await AttachTokenAsync();
+        await _tokenService.AttachToken(_httpClient);
 
         ReturnStatusObject returnStatus = new ReturnStatusObject();
         returnStatus.Success = false;
@@ -189,13 +190,5 @@ public sealed class DeviceFunctions
         returnStatus.Success = true;
         returnStatus.Message = "Device deleted";
         return returnStatus;
-    }
-
-    //JWT Token method
-    private async Task AttachTokenAsync()
-    {
-        string? token = await _tokenService.GetAccessTokenAsync();
-        _httpClient.DefaultRequestHeaders.Authorization =
-            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
     }
 }

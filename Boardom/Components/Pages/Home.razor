@@ -59,7 +59,7 @@ else
               <div class="arduino-card">
                 <div class="card-header">
                   <h3>@device.FriendlyName</h3>
-                  @if (DeviceStatus.StatusList[device.DeviceId])
+                  @if (DeviceStatus.IsOnline(device.DeviceId))
                   {
                     <span class="device-status online">● Online</span>
                   }
@@ -71,7 +71,7 @@ else
                 </div>
                 <div class="sensor-data">
                   @{
-                    var disabled = !DeviceStatus.StatusList[device.DeviceId] || device.LatestReading is null;
+                    bool disabled = !DeviceStatus.IsOnline(device.DeviceId) || device.LatestReading is null;
                   }
                   @foreach (var sensor in SensorDefinitions)
                   {
@@ -194,8 +194,8 @@ else
                 <div class="manage-device-info">
                   <span class="device-friendly-name">@device.FriendlyName</span>
                   <span class="device-id-small">@device.DeviceId</span>
-                  <span class="device-state @(!DeviceStatus.StatusList[device.DeviceId] ? "online" : "offline")">
-                  @if (DeviceStatus.StatusList[device.DeviceId])
+                  <span class="device-state @(!DeviceStatus.IsOnline(device.DeviceId) ? "online" : "offline")">
+                  @if (DeviceStatus.IsOnline(device.DeviceId))
                   {
                     <p style="font-weight: bold; color:#047857; ">● Online</p>
                   }
@@ -379,7 +379,7 @@ else
     };
 
   protected override async Task OnInitializedAsync()
-  {
+  {    
     PendingDeviceStore.Changed += HandlePendingChanged;
     pendingDeviceId = PendingDeviceStore.PendingDeviceId;
 
@@ -404,7 +404,7 @@ else
         continue;
       }
 
-      if (DeviceStatus.StatusList[dev.DeviceId])
+      if (DeviceStatus.IsOnline(dev.DeviceId))
       {
         activeDeviceCount++;
       }

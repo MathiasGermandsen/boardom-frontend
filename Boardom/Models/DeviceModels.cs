@@ -8,7 +8,7 @@ namespace Boardom.Models;
 public sealed class DeviceConnect
 {
     [JsonProperty("deviceId")] 
-    public string DeviceId { get; set; } = string.Empty;
+    public string deviceId { get; set; } = string.Empty;
 }
 
 public sealed class DeviceAdd

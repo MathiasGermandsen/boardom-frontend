@@ -46,7 +46,7 @@
                         {
                            <div class="device-item" @onclick="() => SelectDevice(device)">
                                 <span class="device-name">@device.FriendlyName</span>
-                                @if (DeviceStatus.StatusList[device.DeviceId])
+                                @if (DeviceStatus.IsOnline(device.DeviceId))
                                 {
                                     <span class="device-status online">Online</span>
                                 }
