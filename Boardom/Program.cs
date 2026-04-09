@@ -24,7 +24,7 @@ builder.Services.AddSingleton<PowerService>();
 builder.Services.AddScoped<DeviceFunctions>();
 builder.Services.AddScoped<DataFunctions>();
 builder.Services.AddScoped<GroupFunctions>();
-builder.Services.AddSingleton<ApiTokenService>();
+builder.Services.AddScoped<ApiTokenService>();
 builder.Services.AddScoped<DeviceStatus>();
 
 builder.Services.AddResponseCompression(options =>
