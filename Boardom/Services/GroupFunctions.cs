@@ -54,11 +54,13 @@ public class GroupFunctions
     {
         await _tokenService.AttachToken(_httpClient);
 
-        HttpResponseMessage response = await _httpClient.GetAsync(FetchUrl(APIRequest.GET_ALL));
+        string url = FetchUrl(APIRequest.GET_ALL);
+
+        HttpResponseMessage response = await _httpClient.GetAsync(url);
         
         if (!response.IsSuccessStatusCode)
         {
-            _logger.LogError($"{response.StatusCode.ToString()} - [{FetchUrl(APIRequest.GET_ALL)}]");
+            _logger.LogError($"{response.StatusCode.ToString()} - [{url}]");
             return new List<Group>();
         }
         
@@ -82,8 +84,10 @@ public class GroupFunctions
         
         string json = JsonConvert.SerializeObject(request);
         StringContent content = new StringContent(json, Encoding.UTF8, "application/json");
+
+        string url = FetchUrl(APIRequest.CREATE);
         
-        HttpResponseMessage response = await _httpClient.PostAsync(FetchUrl(APIRequest.CREATE), content);
+        HttpResponseMessage response = await _httpClient.PostAsync(url, content);
         string result = await response.Content.ReadAsStringAsync();
 
         if (response.IsSuccessStatusCode)
@@ -94,6 +98,8 @@ public class GroupFunctions
         else
         {
             returnStatus.Message = "Failed to create group";
+            _logger.LogError($"{response.StatusCode.ToString()} - [{url}]");
+            _logger.LogError("Request: {request}", JsonConvert.SerializeObject(request));
         }
         
         return returnStatus;
@@ -115,7 +121,9 @@ public class GroupFunctions
         string json = JsonConvert.SerializeObject(request);
         StringContent content = new StringContent(json, Encoding.UTF8, "application/json");
 
-        HttpResponseMessage response = await _httpClient.PutAsync(FetchUrl(APIRequest.EDIT), content);
+        string url = FetchUrl(APIRequest.EDIT);
+
+        HttpResponseMessage response = await _httpClient.PutAsync(url, content);
         string result = await response.Content.ReadAsStringAsync();
 
         if (response.IsSuccessStatusCode)
@@ -126,6 +134,8 @@ public class GroupFunctions
         else
         {
             returnStatus.Message = "Failed to edit group";
+            _logger.LogError($"{response.StatusCode.ToString()} - [{url}]");
+            _logger.LogError("Request: {request}", JsonConvert.SerializeObject(request));
         }
 
         return returnStatus;
@@ -145,8 +155,9 @@ public class GroupFunctions
         }
 
         string encodedName = Uri.EscapeDataString(name);
+        string url = FetchUrl(APIRequest.DELETE, encodedName);
 
-        HttpResponseMessage response = await _httpClient.DeleteAsync(FetchUrl(APIRequest.DELETE, encodedName));
+        HttpResponseMessage response = await _httpClient.DeleteAsync(url);
         string result = await response.Content.ReadAsStringAsync();
 
         if (response.IsSuccessStatusCode)
@@ -157,6 +168,8 @@ public class GroupFunctions
         else
         {
             returnStatus.Message = "Failed to delete group";
+            _logger.LogError($"{response.StatusCode.ToString()} - [{url}]");
+            _logger.LogError($"Request: {name}");
         }
 
         return returnStatus;
@@ -184,7 +197,9 @@ public class GroupFunctions
         string json = JsonConvert.SerializeObject(request);
         StringContent content = new StringContent(json, Encoding.UTF8, "application/json");
 
-        HttpResponseMessage response = await _httpClient.PostAsync(FetchUrl(APIRequest.ADD_DEVICE), content);
+        string url = FetchUrl(APIRequest.ADD_DEVICE);
+
+        HttpResponseMessage response = await _httpClient.PostAsync(url, content);
         string result = await response.Content.ReadAsStringAsync();
 
         if (response.IsSuccessStatusCode)
@@ -201,6 +216,8 @@ public class GroupFunctions
             else
             {
                 returnStatus.Message = "Failed to add device";
+                _logger.LogError($"{response.StatusCode.ToString()} - [{url}]");
+                _logger.LogError("Request: {request}", JsonConvert.SerializeObject(request));
             }
         }
 
@@ -230,14 +247,16 @@ public class GroupFunctions
 
         HttpRequestMessage httpRequest = new HttpRequestMessage();
 
-        string urlString = _httpClient.BaseAddress + FetchUrl(APIRequest.DELETE_FROM);
+        string url = FetchUrl(APIRequest.DELETE_FROM);
+
+        string constructedUrl = _httpClient.BaseAddress + url;
         
         try
         {
             httpRequest = new HttpRequestMessage
             {
                 Method = HttpMethod.Delete,
-                RequestUri = new Uri(urlString),
+                RequestUri = new Uri(constructedUrl),
                 Content = new StringContent(json, Encoding.UTF8, "application/json")
             };
         }
@@ -257,6 +276,8 @@ public class GroupFunctions
         else
         {
             returnStatus.Message = "Failed to remove device from group";
+            _logger.LogError($"{response.StatusCode.ToString()} - [{url}]");
+            _logger.LogError("Request: {request}", JsonConvert.SerializeObject(request));
         }
 
         return returnStatus;

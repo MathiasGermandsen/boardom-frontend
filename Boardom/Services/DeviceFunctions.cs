@@ -50,11 +50,13 @@ public sealed class DeviceFunctions
     {
         await _tokenService.AttachToken(_httpClient);
 
-        HttpResponseMessage response = await _httpClient.GetAsync(FetchUrl(APIRequest.GET_ALL));
+        string url = FetchUrl(APIRequest.GET_ALL);
+
+        HttpResponseMessage response = await _httpClient.GetAsync(url);
 
         if (!response.IsSuccessStatusCode)
         {
-            _logger.LogError($"{response.StatusCode.ToString()} - [{FetchUrl(APIRequest.GET_ALL)}]");
+            _logger.LogError($"{response.StatusCode.ToString()} - [{url}]");
             return new List<Device>();
         }
         
@@ -90,8 +92,10 @@ public sealed class DeviceFunctions
         }
         
         string encodedDevId = Uri.EscapeDataString(request.DeviceId);
+
+        string url = FetchUrl(APIRequest.GET, encodedDevId);
         
-        HttpResponseMessage response = await _httpClient.GetAsync(FetchUrl(APIRequest.GET, encodedDevId));
+        HttpResponseMessage response = await _httpClient.GetAsync(url);
 
         if (response.IsSuccessStatusCode)
         {
@@ -99,8 +103,10 @@ public sealed class DeviceFunctions
             returnStatus.Message = "Device already exists!";
             return returnStatus;
         }
+
+        url = FetchUrl(APIRequest.ADD);
         
-        response = await _httpClient.PostAsJsonAsync(FetchUrl(APIRequest.ADD), request);
+        response = await _httpClient.PostAsJsonAsync(url, request);
         string result = await response.Content.ReadAsStringAsync();
 
         if (response.IsSuccessStatusCode)
@@ -112,6 +118,8 @@ public sealed class DeviceFunctions
         }
 
         returnStatus.Message = "Failed to add Device";
+        _logger.LogError($"{response.StatusCode.ToString()} - [{url}]");
+        _logger.LogError("Request: {request}", JsonConvert.SerializeObject(request));
         return returnStatus;
     }
 
@@ -142,8 +150,10 @@ public sealed class DeviceFunctions
         
         string json = JsonConvert.SerializeObject(request);
         StringContent content = new StringContent(json, Encoding.UTF8, "application/json");
+
+        string url = FetchUrl(APIRequest.EDIT);
         
-        HttpResponseMessage response = await _httpClient.PutAsync(FetchUrl(APIRequest.EDIT), content);
+        HttpResponseMessage response = await _httpClient.PutAsync(url, content);
         string result = await response.Content.ReadAsStringAsync();
 
         if (response.IsSuccessStatusCode)
@@ -154,6 +164,8 @@ public sealed class DeviceFunctions
         }
         
         returnStatus.Message = "Failed to edit Device";
+        _logger.LogError($"{response.StatusCode.ToString()} - [{url}]");
+        _logger.LogError("Request: {request}", JsonConvert.SerializeObject(request));
         return returnStatus;
     }
     
@@ -177,18 +189,20 @@ public sealed class DeviceFunctions
         }
         
         string encodedDeviceId = Uri.EscapeDataString(request.DeviceId);
+        string url = FetchUrl(APIRequest.DELETE, encodedDeviceId);
         
-        HttpResponseMessage response = await _httpClient.DeleteAsync(FetchUrl(APIRequest.DELETE, encodedDeviceId));
+        HttpResponseMessage response = await _httpClient.DeleteAsync(url);
 
         if (!response.IsSuccessStatusCode)
         {
-            _logger.LogError($"{response.StatusCode.ToString()} - [{FetchUrl(APIRequest.DELETE)}]");
             returnStatus.Message = "Failed to delete Device";
+            _logger.LogError($"{response.StatusCode.ToString()} - [{url}]");
+            _logger.LogError("Request: {request}", JsonConvert.SerializeObject(request));
             return returnStatus;
         }
         
         returnStatus.Success = true;
-        returnStatus.Message = "Device deleted";
+        returnStatus.Message = "Device Deleted";
         return returnStatus;
     }
 }

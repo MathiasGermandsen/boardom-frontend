@@ -12,6 +12,11 @@ public class DataFunctions
     private readonly PendingDeviceStore _pendingDeviceStore;
     private readonly ApiTokenService _tokenService;
     private readonly ILogger<DeviceFunctions> _logger;
+
+    private enum APIRequest
+    {
+        GET,
+    }
     
     public DataFunctions(IHttpClientFactory httpClientFactory, PendingDeviceStore pendingDeviceStore, ILogger<DeviceFunctions> logger, ApiTokenService tokenService)
     {
@@ -21,6 +26,17 @@ public class DataFunctions
         _tokenService = tokenService;
     }
 
+    private string FetchUrl(APIRequest req, string param = "")
+    {
+        switch(req)
+        {
+            case APIRequest.GET:
+                return $"/Data/sensorData/{param}";
+        }
+
+        return "";
+    }
+
     public async Task<List<SensorReading>> GetData(DataRetrieval request)
     {
         await _tokenService.AttachToken(_httpClient);
@@ -28,23 +44,23 @@ public class DataFunctions
         if (string.IsNullOrWhiteSpace(request.DeviceId))
         {
             _logger.LogError("No device ID specified");
-            return null;
+            return new List<SensorReading>();
         }
         
         string encodedDevId = Uri.EscapeDataString(request.DeviceId);
         string start = request.StartDate.ToString("yyyy/MM/dd");
         string end = request.EndDate.ToString("yyyy/MM/dd");
-        
-        string url = $"Data/sensorData/{encodedDevId}?page={request.Page}&startDate={start}&endDate={end}";
-        _logger.LogInformation($"Fetching sensor data from: {url}");
-        
+
+        string url = FetchUrl(APIRequest.GET, $"Data/sensorData/{encodedDevId}?page={request.Page}&startDate={start}&endDate={end}");
+                
         HttpResponseMessage response = await _httpClient.GetAsync(url);
         string result = await response.Content.ReadAsStringAsync();
         
         if (!response.IsSuccessStatusCode)
         {
-            _logger.LogError($"Error fetching sensor data: {result}");
-            return null;
+            _logger.LogError($"{response.StatusCode.ToString()} - [{url}]");
+            _logger.LogError("Request: {request}", JsonConvert.SerializeObject(request));
+            return new List<SensorReading>();
         }
 
         List<SensorReading> readings = new List<SensorReading>();
@@ -76,19 +92,20 @@ public class DataFunctions
 
         if (string.IsNullOrWhiteSpace(deviceId))
         {
-            _logger.LogWarning("[DEBUG] GetLatestSensorDataAsync called with empty deviceId");
-            return null;
+            _logger.LogError("No device ID specified");
+            return new SensorReading();
         }
         
         string encodedDevId = Uri.EscapeDataString(deviceId);
-        string url = $"Data/sensorData/{encodedDevId}?page=1";
+        string url = FetchUrl(APIRequest.GET, $"{encodedDevId}?page=1");
         
         HttpResponseMessage response = await _httpClient.GetAsync(url);
         string result = await response.Content.ReadAsStringAsync();
         
         if (!response.IsSuccessStatusCode)
         {
-            _logger.LogError($"Error fetching sensor data: {result}");
+            _logger.LogError($"{response.StatusCode.ToString()} - [{url}]");
+            _logger.LogError($"Request: {deviceId}");
             return null;
         }
         
@@ -97,7 +114,7 @@ public class DataFunctions
         if (reading == null)
         {
             _logger.LogError("No sensor data found");
-            return null;
+            return new SensorReading();
         }
         
         return reading;
