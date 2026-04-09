@@ -21,7 +21,7 @@ Real-time household sensor monitoring dashboard built with ASP.NET Core 8.0 Blaz
 ### Local Development
 
 1. Clone the repository
-2. Configure Auth0 credentials in `Boardom/appsettings.Development.json` or via environment variables:
+2. Configure Auth0 credentials in `Boardom/appsettings.json` or via environment variables:
    ```
    Auth0__Domain=<your-auth0-domain>
    Auth0__ClientId=<your-client-id>
@@ -50,13 +50,13 @@ Real-time household sensor monitoring dashboard built with ASP.NET Core 8.0 Blaz
 
 ## Environment Variables
 
-| Variable | Description |
-|---|---|
-| `AUTH0_DOMAIN` | Auth0 tenant domain |
-| `AUTH0_CLIENT_ID` | Auth0 application client ID |
-| `AUTH0_CLIENT_SECRET` | Auth0 application client secret |
-| `IP_ADDRESS_PORT` | Database API base URL (e.g. `http://host:8080/`) |
-| `POWER_API_URL` | Power API base URL (e.g. `http://host:9090`) |
+| Variable              | Description                                      |
+| --------------------- | ------------------------------------------------ |
+| `AUTH0_DOMAIN`        | Auth0 tenant domain                              |
+| `AUTH0_CLIENT_ID`     | Auth0 application client ID                      |
+| `AUTH0_CLIENT_SECRET` | Auth0 application client secret                  |
+| `IP_ADDRESS_PORT`     | Database API base URL (e.g. `http://host:8080/`) |
+| `POWER_API_URL`       | Power API base URL (e.g. `http://host:9090`)     |
 
 ## Project Structure
 
