@@ -80,7 +80,7 @@ public class GroupFunctions
             return returnStatus;
         }
         
-        string json =  JsonConvert.SerializeObject(request);
+        string json = JsonConvert.SerializeObject(request);
         StringContent content = new StringContent(json, Encoding.UTF8, "application/json");
         
         HttpResponseMessage response = await _httpClient.PostAsync(FetchUrl(APIRequest.CREATE), content);

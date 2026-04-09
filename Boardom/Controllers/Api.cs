@@ -27,10 +27,10 @@ public class DeviceController : ControllerBase
 [HttpPost("connect")]
 public IActionResult Connect([FromBody] DeviceConnect request)
   {
-    if (request == null || string.IsNullOrWhiteSpace(request.Id))
+    if (request == null || string.IsNullOrWhiteSpace(request.deviceId))
     return BadRequest(new { success = false, message = "Device ID is required"});
 
-    _pendingDeviceStore.SetConnected(request.Id);
+    _pendingDeviceStore.SetConnected(request.deviceId);
     return Ok(new { success = true }); // add return jwt too
   }
 }

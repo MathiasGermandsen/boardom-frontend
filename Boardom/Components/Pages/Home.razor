@@ -462,7 +462,7 @@ else
     {
       DeviceAdd? request = new DeviceAdd()
       {
-        Id = pendingDeviceId!, 
+        DeviceId = pendingDeviceId!, 
         FriendlyName = friendlyName
       };
       
@@ -546,7 +546,7 @@ else
     {
       DeviceEdit? request = new DeviceEdit()
       {
-        Id = deviceId, 
+        DeviceId = deviceId, 
         NewFriendlyName = editFriendlyName.Trim()
       };
       ReturnStatusObject response = await DeviceFunctions.EditDevice(request);
@@ -580,7 +580,7 @@ else
     {
       DeviceDelete? request = new DeviceDelete()
       {
-        Id = device.DeviceId
+        DeviceId = device.DeviceId
       };
       
       ReturnStatusObject response = await DeviceFunctions.DeleteDevice(request);
