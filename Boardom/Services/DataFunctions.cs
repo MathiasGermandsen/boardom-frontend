@@ -51,7 +51,7 @@ public class DataFunctions
         string start = request.StartDate.ToString("yyyy/MM/dd");
         string end = request.EndDate.ToString("yyyy/MM/dd");
 
-        string url = FetchUrl(APIRequest.GET, $"Data/sensorData/{encodedDevId}?page={request.Page}&startDate={start}&endDate={end}");
+        string url = FetchUrl(APIRequest.GET, $"{encodedDevId}?page={request.Page}&startDate={start}&endDate={end}");
                 
         HttpResponseMessage response = await _httpClient.GetAsync(url);
         string result = await response.Content.ReadAsStringAsync();

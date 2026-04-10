@@ -83,7 +83,7 @@
         <div class="analytics-controls">
             <div class="selected-device-display" @onclick="ChangeDevice">
                 <span class="selected-device-label">Selected:</span>
-                <span class="selected-device-name">@(selectedDevice.FriendlyName ?? selectedGroup?.Name)</span>
+                <span class="selected-device-name">@(selectedDevice?.FriendlyName ?? selectedGroup?.Name ?? "Unknown")</span>
             </div>
             
             <div class="control-group">
