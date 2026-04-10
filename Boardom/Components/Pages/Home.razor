@@ -72,15 +72,17 @@ else
                 <div class="sensor-data">
                   @{
                     bool disabled = !DeviceStatus.IsOnline(device.DeviceId) || device.LatestReading is null;
+                    Dictionary<string, string> iconLabelDict = new Dictionary<string, string>();
+                    dataDict.TryGetValue(device.DeviceId, out iconLabelDict!);
                   }
-                  @foreach (var sensor in SensorDefinitions)
+                  @foreach (KeyValuePair<string, string> kvp in iconLabelDict)
                   {
-                    <div class="sensor-item @(disabled ? "disabled" : "")">
+                     <div class="sensor-item @(disabled ? "disabled" : "")">
                       <div class="sensor-info">
-                        <span class="sensor-icon">@sensor.Icon</span>
-                        <span class="sensor-label">@sensor.Label</span>
+                        <span class="sensor-icon">@kvp.Key.ToString().Split("-")[0]</span>
+                        <span class="sensor-label">@kvp.Key.ToString().Split("-")[1]</span>
                       </div>
-                      <span class="sensor-value">@sensor.Format(device.LatestReading)</span>
+                      <span class="sensor-value">@kvp.Value.ToString()</span>
                     </div>
                   }
                 </div>
@@ -337,6 +339,7 @@ else
   private List<Group> groups = new List<Group>();
   private List<Device>? devices;
   private List<string>? addedDeviceIds = new List<string>();
+  private Dictionary<string, Dictionary<string, string>> dataDict = new Dictionary<string, Dictionary<string, string>>();
   private int activeDeviceCount;
   private double? averageTemperature;
   // --------------- Add Device ---------------
@@ -370,14 +373,6 @@ else
   private string confirmRemoveDeviceId = "";
   private string confirmRemoveDeviceName = "";
 
-  private static readonly (string Icon, string Label, Func<SensorReading?, string> Format)[] SensorDefinitions =
-  {
-        ("L", "Light", r => r?.Light is not null ? $"{r.Light:0} lx" : "N/A"),
-        ("T", "Temperature", r => r?.Temperature is not null ? $"{r.Temperature:0.0}°C" : "N/A"),
-        ("H", "Humidity", r => r?.Humidity is not null ? $"{r.Humidity:0}%" : "N/A"),
-        ("P", "Pressure", r => r?.Pressure is not null ? $"{r.Pressure:0.00} kPa" : "N/A"),
-    };
-
   protected override async Task OnInitializedAsync()
   {    
     PendingDeviceStore.Changed += HandlePendingChanged;
@@ -385,6 +380,7 @@ else
 
     activeDeviceCount = 0;
 
+    await DeviceStatus.DeviceCheckAsync();
     await LoadDashboardDataAsync();
   }
 
@@ -394,6 +390,8 @@ else
 
     devices = await DeviceFunctions.GetAllDevices();
     groups = await GroupFunctions.GetAllGroups();
+
+    await PopulateDataDict();
 
     List<Device>? allGroupDevices = groups.SelectMany(g => g.Devices).ToList();
     
@@ -420,6 +418,27 @@ else
     averageTemperature = temps.Count > 0 ? temps.Average() : null;
 
     isLoading = false;
+  }
+
+  private async Task PopulateDataDict()
+  {
+    dataDict.Clear();
+
+    if (devices!.Any())
+    {
+      foreach (Device dev in devices)
+      {
+        Dictionary<string, string> dataLabels = new Dictionary<string, string>();
+
+        dataLabels.Add("L-Light", $"{dev.LatestReading.Light} lx");
+        dataLabels.Add("T-Temperature", $"{dev.LatestReading.Temperature}°C");
+        dataLabels.Add("H-Humidity", $"{dev.LatestReading.Humidity}%");
+        dataLabels.Add("P-Pressure", $"{dev.LatestReading.Pressure} kPa");
+
+        dataDict.Add(dev.DeviceId, dataLabels);
+      }
+    }
+
   }
 
   private static string FormatTemp(double? temp)
