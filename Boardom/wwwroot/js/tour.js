@@ -56,7 +56,12 @@ function startTour() {
         popover: {
           title: '🏠 Device Groups',
           description:
-            'Your Arduinos are organised into groups here — for example by room. Each card shows the device name, online status, and the four latest sensor readings: light, temperature, humidity, and pressure.',
+            'Your Arduinos are organised into groups here — for example by room. Each card shows the device name, online status, and the four latest sensor readings: light, temperature, humidity, and pressure.' +
+            '<div class="tour-demo-cards">' +
+            '<div class="tour-demo-card"><span class="tour-demo-card-name">Living Room</span><span class="tour-demo-card-status online">Online</span></div>' +
+            '<div class="tour-demo-card"><span class="tour-demo-card-name">Bedroom</span><span class="tour-demo-card-status online">Online</span></div>' +
+            '<div class="tour-demo-card"><span class="tour-demo-card-name">Bathroom</span><span class="tour-demo-card-status offline">Offline</span></div>' +
+            '</div>',
           side: 'top',
           align: 'start',
         }
