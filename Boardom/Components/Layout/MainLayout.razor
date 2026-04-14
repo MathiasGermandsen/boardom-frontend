@@ -2,8 +2,10 @@
 @inject NavigationManager NavigationManager
 
 @{
+    var relativePath = NavigationManager.ToBaseRelativePath(NavigationManager.Uri).Split('?')[0].TrimEnd('/');
     var isLandingPage = NavigationManager.Uri == NavigationManager.BaseUri ||
-                        NavigationManager.ToBaseRelativePath(NavigationManager.Uri) == "";
+                        relativePath == "" ||
+                        relativePath == "howto";
 }
 
 @if (isLandingPage)

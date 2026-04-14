@@ -12,6 +12,7 @@
 @inject GroupFunctions GroupFunctions
 @inject DataFunctions DataFunctions
 @inject DeviceStatus DeviceStatus
+@inject IJSRuntime JS
 
 @attribute [Authorize]
 
@@ -67,7 +68,8 @@ else
                   {
                     <span class="device-status offline">● Offline</span>
                   }
-                 <button class="btn btn-danger btn-sm" @onclick="() => PromptRemoveDeviceFromGroup(group.Name, device.DeviceId, device.FriendlyName)">✕</button>
+                  <button class="btn btn-danger btn-sm"
+                          @onclick="() => PromptRemoveDeviceFromGroup(group.Name, device.DeviceId, device.FriendlyName)">✕</button>
                 </div>
                 <div class="sensor-data">
                   @{
@@ -77,7 +79,7 @@ else
                   }
                   @foreach (KeyValuePair<string, string> kvp in iconLabelDict)
                   {
-                     <div class="sensor-item @(disabled ? "disabled" : "")">
+                    <div class="sensor-item @(disabled ? "disabled" : "")">
                       <div class="sensor-info">
                         <span class="sensor-icon">@kvp.Key.ToString().Split("-")[0]</span>
                         <span class="sensor-label">@kvp.Key.ToString().Split("-")[1]</span>
@@ -97,27 +99,25 @@ else
 
 @* Single FAB with popup menu *@
 <div class="fab-container @(showFabMenu ? "open" : "")">
-    @if (showFabMenu)
-    {
-        <div class="fab-menu">
-            <div class="fab-menu-item" @onclick="OpenAddDevice">
-                <span class="fab-menu-label">Add device</span>
-                <span class="fab-menu-icon">+</span>
-            </div>
-            <div class="fab-menu-item" @onclick="OpenManageDevices">
-                <span class="fab-menu-label">Edit devices</span>
-                <span class="fab-menu-icon">✎</span>
-            </div>
-            <div class="fab-menu-item" @onclick="OpenManageGroups">
-                <span class="fab-menu-label">Edit groups</span>
-                <span class="fab-menu-icon">⊟</span>
-            </div>
-        </div>
-    }
-    <button type="button"
-            class="fab-main @(showFabMenu ? "open" : "")"
-            @onclick="ToggleFabMenu"
-            aria-label="Actions">+</button>
+  @if (showFabMenu)
+  {
+    <div class="fab-menu">
+      <div class="fab-menu-item" @onclick="OpenAddDevice">
+        <span class="fab-menu-label">Add device</span>
+        <span class="fab-menu-icon">+</span>
+      </div>
+      <div class="fab-menu-item" @onclick="OpenManageDevices">
+        <span class="fab-menu-label">Edit devices</span>
+        <span class="fab-menu-icon">✎</span>
+      </div>
+      <div class="fab-menu-item" @onclick="OpenManageGroups">
+        <span class="fab-menu-label">Edit groups</span>
+        <span class="fab-menu-icon">⊟</span>
+      </div>
+    </div>
+  }
+  <button type="button" class="fab-main @(showFabMenu ? "open" : "")" @onclick="ToggleFabMenu"
+          aria-label="Actions">+</button>
 </div>
 
 
@@ -197,14 +197,14 @@ else
                   <span class="device-friendly-name">@device.FriendlyName</span>
                   <span class="device-id-small">@device.DeviceId</span>
                   <span class="device-state @(!DeviceStatus.IsOnline(device.DeviceId) ? "online" : "offline")">
-                  @if (DeviceStatus.IsOnline(device.DeviceId))
-                  {
-                    <p style="font-weight: bold; color:#047857; ">● Online</p>
-                  }
-                  else
-                  {
-                    <p style="color: #991b1b; font-weight: bold;">● Offline</p>
-                  }
+                    @if (DeviceStatus.IsOnline(device.DeviceId))
+                    {
+                      <p style="font-weight: bold; color:#047857; ">● Online</p>
+                    }
+                    else
+                    {
+                      <p style="color: #991b1b; font-weight: bold;">● Offline</p>
+                    }
                   </span>
                 </div>
                 <div class="manage-device-actions">
@@ -252,44 +252,44 @@ else
               {
                 <div class="manage-device-edit" style="align-items: flex-end;">
                   <div style="display:flex; flex-direction:column; gap:0.25rem; flex:1;">
-                    <span style="font-size:0.75rem; color:#7a8fa3; font-weight:600; letter-spacing:0.5px; text-transform:uppercase;">Name</span>
+                    <span
+                    style="font-size:0.75rem; color:#7a8fa3; font-weight:600; letter-spacing:0.5px; text-transform:uppercase;">Name</span>
                     <input class="form-control" @bind="editGroupNameValue" @bind:event="oninput" />
                   </div>
                   <div class="manage-device-actions">
-                  <button class="btn btn-primary"
-                          @onclick="() => SubmitEditGroup(group.Name)"
-                          disabled="@(isSubmittingGroup || string.IsNullOrWhiteSpace(editGroupNameValue))">Save</button>
-                  <button class="btn btn-secondary" @onclick="CancelEditGroup" disabled="@isSubmittingGroup">Cancel</button>
+                    <button class="btn btn-primary" @onclick="() => SubmitEditGroup(group.Name)"
+                            disabled="@(isSubmittingGroup || string.IsNullOrWhiteSpace(editGroupNameValue))">Save</button>
+                    <button class="btn btn-secondary" @onclick="CancelEditGroup" disabled="@isSubmittingGroup">Cancel</button>
+                  </div>
                 </div>
-              </div>
               }
               else
               {
-              <div class="manage-group-row">
-                <div class="manage-device-info">
-                  <span class="device-friendly-name">@group.Name</span>
-                  <span class="device-id-small">@group.Devices.Count device(s)</span>
-                </div>
-                <select class="form-control"
-                        value="@(selectedDeviceIds.GetValueOrDefault(group.Name, ""))"
-                        @onchange="@(e => selectedDeviceIds[group.Name] = e.Value?.ToString() ?? string.Empty)">
-                  <option value="">— Add device —</option>
-                  @if (devices != null)
-                  {
-                    @foreach (Device d in devices)
+                <div class="manage-group-row">
+                  <div class="manage-device-info">
+                    <span class="device-friendly-name">@group.Name</span>
+                    <span class="device-id-small">@group.Devices.Count device(s)</span>
+                  </div>
+                  <select class="form-control" value="@(selectedDeviceIds.GetValueOrDefault(group.Name, ""))"
+                          @onchange="@(e => selectedDeviceIds[group.Name] = e.Value?.ToString() ?? string.Empty)">
+                    <option value="">— Add device —</option>
+                    @if (devices != null)
                     {
-                      <option value="@d.DeviceId">@d.FriendlyName</option>
+                      @foreach (Device d in devices)
+                      {
+                        <option value="@d.DeviceId">@d.FriendlyName</option>
+                      }
                     }
-                  }
-                </select>
-                <button class="btn btn-primary"
-                        @onclick="() => AddDeviceToGroup(group.Name)"
-                        disabled="@(isSubmittingGroup || string.IsNullOrWhiteSpace(selectedDeviceIds.GetValueOrDefault(group.Name)))">
-                  Add
-                </button>
-                <button class="btn btn-secondary" @onclick="() => StartEditGroup(group.Name)" disabled="@isSubmittingGroup">Edit</button>
-                <button class="btn btn-danger" @onclick="() => DeleteGroup(group.Name)" disabled="@isSubmittingGroup">Delete</button>
-              </div>
+                  </select>
+                  <button class="btn btn-primary" @onclick="() => AddDeviceToGroup(group.Name)"
+                          disabled="@(isSubmittingGroup || string.IsNullOrWhiteSpace(selectedDeviceIds.GetValueOrDefault(group.Name)))">
+                    Add
+                  </button>
+                  <button class="btn btn-secondary" @onclick="() => StartEditGroup(group.Name)"
+                          disabled="@isSubmittingGroup">Edit</button>
+                  <button class="btn btn-danger" @onclick="() => DeleteGroup(group.Name)"
+                          disabled="@isSubmittingGroup">Delete</button>
+                </div>
               }
             </div>
           }
@@ -297,8 +297,7 @@ else
 
         <div class="manage-group-create">
           <input class="form-control" placeholder="New group name" @bind="newGroupName" @bind:event="oninput" />
-          <button class="btn btn-primary"
-                  @onclick="SubmitCreateGroup"
+          <button class="btn btn-primary" @onclick="SubmitCreateGroup"
                   disabled="@(isSubmittingGroup || string.IsNullOrWhiteSpace(newGroupName))">Create</button>
         </div>
       }
@@ -333,7 +332,7 @@ else
 
 @code {
 
-// --------------- Dashboard ---------------
+  // --------------- Dashboard ---------------
   private bool isLoading = true;
   private bool isLoadingDevices;
   private List<Group> groups = new List<Group>();
@@ -348,7 +347,8 @@ else
   private string friendlyName = "";
   private string? errorMessage;
   private bool isSubmitting;
-  private bool CanSubmit => !isSubmitting && !string.IsNullOrWhiteSpace(pendingDeviceId) && !string.IsNullOrWhiteSpace(friendlyName);
+  private bool CanSubmit => !isSubmitting && !string.IsNullOrWhiteSpace(pendingDeviceId) &&
+!string.IsNullOrWhiteSpace(friendlyName);
 
   // --------------- Manage Device ---------------
   private bool showManageDevices;
@@ -367,14 +367,22 @@ else
   private bool isSubmittingGroup;
   private Dictionary<string, string> selectedDeviceIds = new();
 
-// --------------- remove from group confirmation pop up ---------------
+  // --------------- remove from group confirmation pop up ---------------
   private bool showConfirmRemove;
   private string confirmRemoveGroupName = "";
   private string confirmRemoveDeviceId = "";
   private string confirmRemoveDeviceName = "";
 
+  protected override async Task OnAfterRenderAsync(bool firstRender)
+  {
+    if (firstRender)
+    {
+      await JS.InvokeVoidAsync("boardomTour.checkAndStartTour");
+    }
+  }
+
   protected override async Task OnInitializedAsync()
-  {    
+  {
     PendingDeviceStore.Changed += HandlePendingChanged;
     pendingDeviceId = PendingDeviceStore.PendingDeviceId;
 
@@ -481,7 +489,7 @@ else
     {
       DeviceAdd? request = new DeviceAdd()
       {
-        DeviceId = pendingDeviceId!, 
+        DeviceId = pendingDeviceId!,
         FriendlyName = friendlyName
       };
       
@@ -565,7 +573,7 @@ else
     {
       DeviceEdit? request = new DeviceEdit()
       {
-        DeviceId = deviceId, 
+        DeviceId = deviceId,
         NewFriendlyName = editFriendlyName.Trim()
       };
       ReturnStatusObject response = await DeviceFunctions.EditDevice(request);
@@ -686,13 +694,13 @@ else
     {
       GroupEdit? request = new GroupEdit()
       {
-        Name = oldName, 
+        Name = oldName,
         NewName = editGroupNameValue.Trim()
       };
       
       ReturnStatusObject response = await GroupFunctions.EditGroup(request);
       
-      if(response.Success)
+      if (response.Success)
       {
         editingGroupName = null;
         editGroupNameValue = "";
@@ -704,7 +712,7 @@ else
         groupErrorMessage = response.Message;
       }
     }
-    catch(Exception ex)
+    catch (Exception ex)
     {
       groupErrorMessage = ex.Message;
     }
@@ -732,7 +740,7 @@ else
         groupErrorMessage = response.Message;
       }
     }
-    catch(Exception ex)
+    catch (Exception ex)
     {
       groupErrorMessage = ex.Message;
     }
@@ -755,7 +763,7 @@ else
       
       ReturnStatusObject response = await GroupFunctions.CreateGroup(request);
       
-      if(response.Success)
+      if (response.Success)
       {
         newGroupName = "";
         await LoadGroupsForManage();
@@ -783,17 +791,17 @@ else
 
     try
     {
-      string deviceId = selectedDeviceIds.GetValueOrDefault(groupName,"");
+      string deviceId = selectedDeviceIds.GetValueOrDefault(groupName, "");
       
       GroupManageDevice? request = new GroupManageDevice
       {
-        Name = groupName, 
+        Name = groupName,
         DeviceId = deviceId
       };
       
       ReturnStatusObject response = await GroupFunctions.AddDeviceToGroup(request);
 
-      if(response.Success)
+      if (response.Success)
       {
         selectedDeviceIds.Remove(groupName);
         await LoadGroupsForManage();
@@ -845,20 +853,20 @@ else
     {
       GroupManageDevice? request = new GroupManageDevice
       {
-        Name = groupName, 
+        Name = groupName,
         DeviceId = deviceId
       };
       
-     ReturnStatusObject response = await GroupFunctions.RemoveDeviceFromGroup(request);
+      ReturnStatusObject response = await GroupFunctions.RemoveDeviceFromGroup(request);
       
-      if(response.Success)
+      if (response.Success)
       {
         await LoadDashboardDataAsync();
       }
     }
-    catch(Exception ex)
+    catch (Exception ex)
     {
-      _=ex;
+      _ = ex;
     }
   }
 
@@ -866,6 +874,6 @@ else
 
   private void ToggleFabMenu()
   {
-      showFabMenu = !showFabMenu;
+    showFabMenu = !showFabMenu;
   }
 }
