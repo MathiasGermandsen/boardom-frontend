@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="app.css?v=@(System.Reflection.Assembly.GetExecutingAssembly().GetName().Version)" />
   <link rel="stylesheet"
         href="Boardom.styles.css?v=@(System.Reflection.Assembly.GetExecutingAssembly().GetName().Version)" />
+  <link rel="stylesheet" href="driver.css" />
   <link rel="icon" type="image/png" href="favicon.png" />
   <HeadOutlet @rendermode="InteractiveServer" />
 </head>
@@ -20,8 +21,11 @@
   <script src="_framework/blazor.web.js"></script>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+  <script
+  src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
   <script src="js/analyticsChart.js"></script>
+  <script src="js/driver.js"></script>
+  <script src="js/tour.js"></script>
 </body>
 
 </html>

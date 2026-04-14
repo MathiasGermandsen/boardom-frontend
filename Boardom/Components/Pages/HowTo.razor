@@ -1,0 +1,363 @@
+@page "/howto"
+
+<PageTitle>BOARDOM - How To Guide</PageTitle>
+
+<div class="howto-page">
+  <!-- Background Elements -->
+  <div class="bg-gradient"></div>
+  <div class="bg-accent"></div>
+
+  <!-- Navigation -->
+  <nav class="howto-nav">
+    <a href="/" class="nav-brand">
+      <div class="nav-logo">◆</div>
+      <span class="nav-title">BOARDOM</span>
+    </a>
+    <div class="nav-links">
+      <a href="/" class="nav-link">Home</a>
+      <form method="post" action="/Account/LoginPost" data-enhance="false" class="nav-cta-form">
+        <AntiforgeryToken />
+        <button type="submit" class="nav-cta">Sign In</button>
+      </form>
+    </div>
+  </nav>
+
+  <div class="howto-layout">
+
+    <!-- Sticky Table of Contents -->
+    <aside class="howto-toc">
+      <div class="toc-inner">
+        <div class="toc-title">Contents</div>
+        <a href="#arduino-setup" class="toc-link">1. Arduino Setup & Wiring</a>
+        <a href="#connecting" class="toc-link">2. Connecting to Boardom</a>
+        <a href="#dashboard" class="toc-link">3. Dashboard Overview</a>
+        <a href="#devices-groups" class="toc-link">4. Devices & Groups</a>
+        <a href="#analytics" class="toc-link">5. Analytics & Charts</a>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="howto-content">
+
+      <div class="howto-hero">
+        <div class="hero-badge">
+          <span class="badge-icon">📖</span>
+          <span>Complete Guide</span>
+        </div>
+        <h1 class="howto-title">How To Use <span class="text-highlight">BOARDOM</span></h1>
+        <p class="howto-subtitle">
+          From setting up your first Arduino sensor to reading historical data — everything you need to get started.
+        </p>
+      </div>
+
+      <!-- ── Section 1: Arduino Setup ─────────────────────── -->
+      <section id="arduino-setup" class="howto-section">
+        <div class="section-header">
+          <span class="section-number">01</span>
+          <h2 class="section-title">Arduino Setup & Wiring</h2>
+        </div>
+        <p class="section-intro">
+          Boardom monitors your home by reading sensor data from the <strong>Arduino MKR 1010 WiFi</strong> together
+          with the
+          <strong>MKR 1010 WiFi Shield</strong>. Each board should have the Boardom firmware flashed onto it.
+        </p>
+
+        <div class="info-card">
+          <div class="info-card-icon">🔌</div>
+          <div>
+            <h3>Required Hardware</h3>
+            <ul class="howto-list">
+              <li>Arduino MKR 1010 WiFi</li>
+              <li>MKR 1010 WiFi Shield <span style="color:rgba(232,238,247,0.45);font-size:0.85em;">(includes BME688 and
+                APDS9960)</span></li>
+                <li>BME688 sensor — Temperature, Humidity &amp; Pressure <span
+                  style="color:rgba(232,238,247,0.45);font-size:0.85em;">(on-shield)</span></li>
+                  <li>APDS9960 sensor — Light level <span
+                    style="color:rgba(232,238,247,0.45);font-size:0.85em;">(on-shield)</span></li>
+                    <li>ST0160 sensor — Soil Moisture <span style="color:rgba(232,238,247,0.45);font-size:0.85em;">(external,
+                      optional)</span></li>
+                    </ul>
+                  </div>
+                </div>
+
+                <h3 class="sub-heading">Flashing the Firmware</h3>
+                <ol class="howto-list numbered">
+                  <li>Download the Boardom Arduino sketch from the project repository.</li>
+                  <li>Open the sketch in <strong>Arduino IDE</strong> (version 2.x recommended).</li>
+                  <li>Install the <strong>Arduino SAMD Boards</strong> package via <em>Tools → Board → Boards Manager</em> if
+                    you haven't already.</li>
+                    <li>Fill in your <strong>WiFi SSID, password</strong>, and the <strong>Boardom API URL</strong> in the config
+                      section at the top of the sketch.</li>
+                      <li>Select <em>Tools → Board → Arduino SAMD Boards → Arduino MKR WiFi 1010</em>, select the correct port, then
+                        click
+                        <strong>Upload</strong>.
+                      </li>
+                      <li>Open the Serial Monitor at 115200 baud to confirm the device connects to WiFi and begins sending data.
+                      </li>
+                    </ol>
+                  </section>
+
+                  <!-- ── Section 2: Connecting to Boardom ───────────────── -->
+                  <section id="connecting" class="howto-section">
+                    <div class="section-header">
+                      <span class="section-number">02</span>
+                      <h2 class="section-title">Connecting Arduino to Boardom</h2>
+                    </div>
+                    <p class="section-intro">
+                      Once your Arduino is wired and flashed, adding it to your Boardom account is a quick two-step process.
+                    </p>
+
+                    <div class="steps-flow">
+                      <div class="step-card">
+                        <div class="step-num">1</div>
+                        <div class="step-body">
+                          <h4>Power on the Arduino and press <strong>04</strong> on the shield</h4>
+                          <p>When the Arduino boots and connects to WiFi, the shield will show a <em>disconnected</em> screen.
+                            Press <strong>04</strong> on the shield to send a <em>connect</em> signal to the Boardom server with its
+                            unique Device ID. The server holds this ID and waits for you to name it.</p>
+                          </div>
+                        </div>
+                        <div class="step-connector">↓</div>
+                        <div class="step-card">
+                          <div class="step-num">2</div>
+                          <div class="step-body">
+                            <h4>Open the Dashboard and click <span class="inline-badge">+</span></h4>
+                            <p>Navigate to the <a href="/home" class="inline-link">Dashboard</a>, then click the blue
+                              <strong>+</strong> floating button in the bottom-right corner. Choose <strong>Add device</strong> from
+                              the menu.
+                            </p>
+                          </div>
+                        </div>
+                        <div class="step-connector">↓</div>
+                        <div class="step-card">
+                          <div class="step-num">3</div>
+                          <div class="step-body">
+                            <h4>Wait for the device ID to appear</h4>
+                            <p>The modal will show <em>"Waiting for device..."</em> and then automatically display the Device ID once
+                              the Arduino has connected. This is real-time — no refresh needed.</p>
+                            </div>
+                          </div>
+                          <div class="step-connector">↓</div>
+                          <div class="step-card">
+                            <div class="step-num">4</div>
+                            <div class="step-body">
+                              <h4>Give it a friendly name and click <span class="inline-badge">Add</span></h4>
+                              <p>Type a descriptive name (e.g. <em>"Living Room"</em> or <em>"Bathroom"</em>) and click
+                                <strong>Add</strong>. The device is now registered under your account and will start showing sensor data
+                                on the dashboard.
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div class="tip-box warning">
+                          <span class="tip-icon">⚠️</span>
+                          <div>
+                            <strong>Note:</strong> Only one device can be pending at a time. If you want to add multiple Arduinos, add
+                            them one at a time — power on, add, then power on the next one.
+                          </div>
+                        </div>
+                      </section>
+
+                      <!-- ── Section 3: Dashboard Overview ─────────────────── -->
+                      <section id="dashboard" class="howto-section">
+                        <div class="section-header">
+                          <span class="section-number">03</span>
+                          <h2 class="section-title">Dashboard Overview</h2>
+                        </div>
+                        <p class="section-intro">
+                          The dashboard is your home base. It shows the current status and latest sensor readings for all your devices.
+                        </p>
+
+                        <h3 class="sub-heading">Stats Bar</h3>
+                        <div class="feature-grid">
+                          <div class="feature-card">
+                            <div class="feature-icon">●</div>
+                            <h4>Active Devices in Groups</h4>
+                            <p>How many of your devices that are assigned to a group are currently online (sent data in the last 4
+                              minutes).</p>
+                            </div>
+                            <div class="feature-card">
+                              <div class="feature-icon">●</div>
+                              <h4>Device Groups</h4>
+                              <p>The number of groups you have created. Groups let you organise devices by room, floor, or any category
+                                you like.</p>
+                              </div>
+                              <div class="feature-card">
+                                <div class="feature-icon">●</div>
+                                <h4>Average Temperature</h4>
+                                <p>The mean temperature reading across all your registered devices with available data.</p>
+                              </div>
+                            </div>
+
+                            <h3 class="sub-heading">Device Cards</h3>
+                            <p class="section-para">Each device appears as a card inside its group. The card shows:</p>
+                            <div class="detail-list">
+                              <div class="detail-row">
+                                <span class="detail-key">Device name</span>
+                                <span class="detail-val">The friendly name you gave it when connecting.</span>
+                              </div>
+                              <div class="detail-row">
+                                <span class="detail-key">● Online / ● Offline</span>
+                                <span class="detail-val">Green = connected and sending data within the last 4 minutes. Red = no recent
+                                  signal.</span>
+                                </div>
+                                <div class="detail-row">
+                                  <span class="detail-key">💡 Light</span>
+                                  <span class="detail-val">Ambient light level, measured in lux (lx).</span>
+                                </div>
+                                <div class="detail-row">
+                                  <span class="detail-key">🌡️ Temperature</span>
+                                  <span class="detail-val">Room temperature in degrees Celsius (°C).</span>
+                                </div>
+                                <div class="detail-row">
+                                  <span class="detail-key">💧 Humidity</span>
+                                  <span class="detail-val">Relative air humidity as a percentage (%).</span>
+                                </div>
+                                <div class="detail-row">
+                                  <span class="detail-key">🔵 Pressure</span>
+                                  <span class="detail-val">Atmospheric pressure in kilopascals (kPa).</span>
+                                </div>
+                              </div>
+
+                              <div class="tip-box">
+                                <span class="tip-icon">💡</span>
+                                <div>
+                                  <strong>Tip:</strong> Sensor values appear greyed out when a device is offline. Data shown is always the
+                                  last known reading.
+                                </div>
+                              </div>
+                            </section>
+
+                            <!-- ── Section 4: Devices & Groups ────────────────────── -->
+                            <section id="devices-groups" class="howto-section">
+                              <div class="section-header">
+                                <span class="section-number">04</span>
+                                <h2 class="section-title">Managing Devices &amp; Groups</h2>
+                              </div>
+                              <p class="section-intro">
+                                The floating <strong>+</strong> button on the dashboard gives you access to all device and group management
+                                tools.
+                              </p>
+
+                              <h3 class="sub-heading">FAB Menu Options</h3>
+                              <div class="fab-guide">
+                                <div class="fab-item">
+                                  <span class="fab-icon-sample">+</span>
+                                  <div>
+                                    <h4>Add device</h4>
+                                    <p>Register a new Arduino that has just connected to the network. See <a href="#connecting"
+                                                                                                               class="inline-link">Section 2</a> for the full flow.</p>
+                                    </div>
+                                  </div>
+                                  <div class="fab-item">
+                                    <span class="fab-icon-sample">✎</span>
+                                    <div>
+                                      <h4>Edit devices</h4>
+                                      <p>Rename any registered device or permanently delete it from your account. Deleting a device also removes
+                                        all its historical sensor data.</p>
+                                      </div>
+                                    </div>
+                                    <div class="fab-item">
+                                      <span class="fab-icon-sample">⊟</span>
+                                      <div>
+                                        <h4>Edit groups</h4>
+                                        <p>Create new groups, rename existing ones, add/remove devices from groups, or delete groups entirely. A
+                                          device can belong to multiple groups.</p>
+                                        </div>
+                                      </div>
+                                    </div>
+
+                                    <div class="tip-box">
+                                      <span class="tip-icon">💡</span>
+                                      <div>
+                                        <strong>Tip:</strong> If you remove a device from a group it is not deleted — it still exists in your
+                                        account and can be added to a different group at any time.
+                                      </div>
+                                    </div>
+
+                                    <h3 class="sub-heading">Devices Page</h3>
+                                    <p class="section-para">
+                                      The <a href="/devices" class="inline-link">Devices</a> page (sidebar → Devices) gives you a quick overview of
+                                      all registered devices and their current online/offline status, with a count summary at the top. This is a
+                                      read-only view — use the dashboard's FAB menu to make changes.
+                                    </p>
+                                  </section>
+
+                                  <!-- ── Section 5: Analytics ───────────────────────────── -->
+                                  <section id="analytics" class="howto-section">
+                                    <div class="section-header">
+                                      <span class="section-number">05</span>
+                                      <h2 class="section-title">Analytics &amp; Charts</h2>
+                                    </div>
+                                    <p class="section-intro">
+                                      The <a href="/analytics" class="inline-link">Analytics</a> page lets you explore historical sensor data for
+                                      any device or group across any date range.
+                                    </p>
+
+                                    <div class="steps-flow">
+                                      <div class="step-card">
+                                        <div class="step-num">1</div>
+                                        <div class="step-body">
+                                          <h4>Choose Device or Group</h4>
+                                          <p>When you open Analytics, a selector modal appears. Switch between the <strong>Device</strong> and
+                                            <strong>Group</strong> tabs, then click the item you want to analyse. Selecting a group plots all
+                                            devices in that group on the same chart.
+                                          </p>
+                                        </div>
+                                      </div>
+                                      <div class="step-connector">↓</div>
+                                      <div class="step-card">
+                                        <div class="step-num">2</div>
+                                        <div class="step-body">
+                                          <h4>Set the data type and date range</h4>
+                                          <p>Use the controls at the top of the chart to choose what to plot — Temperature, Humidity, Light, or
+                                            Pressure. Then pick a <strong>Start Date</strong> and <strong>End Date</strong>.</p>
+                                          </div>
+                                        </div>
+                                        <div class="step-connector">↓</div>
+                                        <div class="step-card">
+                                          <div class="step-num">3</div>
+                                          <div class="step-body">
+                                            <h4>Adjust the thinning factor (optional)</h4>
+                                            <p>If there is a lot of data, increase the <strong>Thinning Factor</strong> to reduce the number of
+                                              plotted points for a smoother chart. Lower values show more raw detail.</p>
+                                            </div>
+                                          </div>
+                                          <div class="step-connector">↓</div>
+                                          <div class="step-card">
+                                            <div class="step-num">4</div>
+                                            <div class="step-body">
+                                              <h4>Read the stats</h4>
+                                              <p>Below the chart you will see the <strong>Maximum</strong>, <strong>Minimum</strong>, and
+                                                <strong>Average</strong> values for the selected period, making it easy to spot trends and anomalies.
+                                              </p>
+                                            </div>
+                                          </div>
+                                        </div>
+
+                                        <div class="tip-box">
+                                          <span class="tip-icon">💡</span>
+                                          <div>
+                                            <strong>Tip:</strong> When a group is selected, each device gets its own coloured line on the chart so you
+                                            can compare rooms side by side.
+                                          </div>
+                                        </div>
+                                      </section>
+
+                                      <!-- CTA Footer -->
+                                      <div class="howto-cta">
+                                        <h2>Ready to get started?</h2>
+                                        <p>Sign in to your Boardom account and begin monitoring your home in real time.</p>
+                                        <form method="post" action="/Account/LoginPost" data-enhance="false">
+                                          <AntiforgeryToken />
+                                          <button type="submit" class="btn-primary-cta">
+                                            <span>Access Dashboard</span>
+                                            <span class="btn-icon">→</span>
+                                          </button>
+                                        </form>
+                                      </div>
+
+                                    </main>
+                                  </div>
+                                </div>
