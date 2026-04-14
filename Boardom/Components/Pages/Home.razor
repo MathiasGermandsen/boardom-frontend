@@ -463,10 +463,11 @@ else
 
   private void OpenAddDevice()
   {
+    PendingDeviceStore.Clear();
+    pendingDeviceId = null;
     showFabMenu = false;
     showAddDevice = true;
     errorMessage = null;
-    pendingDeviceId = PendingDeviceStore.PendingDeviceId;
   }
 
   private void CancelAddDevice()
