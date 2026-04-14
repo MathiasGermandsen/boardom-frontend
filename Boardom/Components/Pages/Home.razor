@@ -436,17 +436,19 @@ else
     {
       foreach (Device dev in devices)
       {
-        Dictionary<string, string> dataLabels = new Dictionary<string, string>();
+        if (dev.LatestReading != null)
+        {
+          Dictionary<string, string> dataLabels = new Dictionary<string, string>();
 
-        dataLabels.Add("L-Light", $"{dev.LatestReading.Light} lx");
-        dataLabels.Add("T-Temperature", $"{dev.LatestReading.Temperature}°C");
-        dataLabels.Add("H-Humidity", $"{dev.LatestReading.Humidity}%");
-        dataLabels.Add("P-Pressure", $"{dev.LatestReading.Pressure} kPa");
+          dataLabels.Add("L-Light", $"{dev.LatestReading.Light} lx");
+          dataLabels.Add("T-Temperature", $"{dev.LatestReading.Temperature}°C");
+          dataLabels.Add("H-Humidity", $"{dev.LatestReading.Humidity}%");
+          dataLabels.Add("P-Pressure", $"{dev.LatestReading.Pressure} kPa");
 
-        dataDict.Add(dev.DeviceId, dataLabels);
+          dataDict.Add(dev.DeviceId, dataLabels);
+        }
       }
     }
-
   }
 
   private static string FormatTemp(double? temp)
