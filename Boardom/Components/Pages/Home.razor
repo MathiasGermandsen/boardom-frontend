@@ -423,7 +423,12 @@ else
       .Select(d => d.LatestReading!.Temperature!)
       .ToList();
 
-    averageTemperature = temps.Count > 0 ? temps.Average() : null;
+    averageTemperature = temps.Count > 0 ? temps.Average() : 0;
+
+    if (!allGroupDevices.Any())
+    {
+      averageTemperature = 0;
+    }
 
     isLoading = false;
   }
@@ -436,17 +441,25 @@ else
     {
       foreach (Device dev in devices)
       {
+        Dictionary<string, string> dataLabels = new Dictionary<string, string>();
+
         if (dev.LatestReading != null)
         {
-          Dictionary<string, string> dataLabels = new Dictionary<string, string>();
-
           dataLabels.Add("L-Light", $"{dev.LatestReading.Light} lx");
           dataLabels.Add("T-Temperature", $"{dev.LatestReading.Temperature}°C");
           dataLabels.Add("H-Humidity", $"{dev.LatestReading.Humidity}%");
           dataLabels.Add("P-Pressure", $"{dev.LatestReading.Pressure} kPa");
 
-          dataDict.Add(dev.DeviceId, dataLabels);
         }
+        else
+        {
+          dataLabels.Add("L-Light", $"N/A");
+          dataLabels.Add("T-Temperature", $"N/A");
+          dataLabels.Add("H-Humidity", $"N/A");
+          dataLabels.Add("P-Pressure", $"N/A");
+        }
+
+        dataDict.Add(dev.DeviceId, dataLabels);
       }
     }
   }
