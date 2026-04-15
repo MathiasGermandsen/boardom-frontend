@@ -4,6 +4,8 @@ Real-time household sensor monitoring dashboard built with ASP.NET Core 8.0 Blaz
 
 **Live website:** [Website Link](https://boardom-dashboard.mercantec.tech/)
 
+**Project video:** Can be found in the [`docs/`](docs/) folder.
+
 ## Features
 
 - **Live Device Monitoring** — View temperature, humidity, light, and pressure readings from connected sensors
