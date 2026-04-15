@@ -423,7 +423,12 @@ else
       .Select(d => d.LatestReading!.Temperature!)
       .ToList();
 
-    averageTemperature = temps.Count > 0 ? temps.Average() : null;
+    averageTemperature = temps.Count > 0 ? temps.Average() : 0;
+
+    if (!allGroupDevices.Any())
+    {
+      averageTemperature = 0;
+    }
 
     isLoading = false;
   }
