@@ -2,61 +2,89 @@
 
 Real-time household sensor monitoring dashboard built with ASP.NET Core 8.0 Blazor Server.
 
+**Live website:** [Website Link](https://boardom-dashboard.mercantec.tech/)
+
 ## Features
 
 - **Live Device Monitoring** — View temperature, humidity, light, and pressure readings from connected sensors
 - **Device & Group Management** — Organize devices into groups, add/edit/remove devices
 - **Analytics** — Chart historical sensor data with date filtering, data thinning, and min/max/avg calculations
-- **Power Settings** — Configure energy company and price-per-kWh preferences
 - **Authentication** — Auth0 OpenID Connect integration
 
 ## Prerequisites
 
-- [.NET 8.0 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
-- [Docker](https://www.docker.com/) (for containerized deployment)
+- [Git](https://git-scm.com/)
+- [Docker](https://www.docker.com/) and Docker Compose
 - An [Auth0](https://auth0.com/) account with a configured application
 
 ## Getting Started
 
-### Local Development
+The Boardom project consists of two repositories that each run their own Docker Compose stack:
 
-1. Clone the repository
-2. Configure Auth0 credentials in `Boardom/appsettings.json` or via environment variables:
-   ```
-   Auth0__Domain=<your-auth0-domain>
-   Auth0__ClientId=<your-client-id>
-   Auth0__ClientSecret=<your-client-secret>
-   ```
-3. Configure API URLs:
-   ```
-   ApiSettings__DatabaseApiUrl=<database-api-url>
-   ApiSettings__PowerApiUrl=<power-api-url>
-   ```
-4. Run the application:
-   ```bash
-   cd Boardom
-   dotnet run
-   ```
-5. Open https://localhost:7086 (or http://localhost:5131)
+| Repository | Description | URL |
+| --- | --- | --- |
+| **Backend** | API, database, and MQTT services | https://github.com/MathiasGermandsen/boardom-backend.git |
+| **Frontend** | Blazor Server dashboard (this repo) | _you are here_ |
 
-### Docker
+### 1. Clone both repositories
 
-1. Create a `.env` file in the project root (see [Environment Variables](#environment-variables))
-2. Build and run:
-   ```bash
-   docker compose up -d
-   ```
-3. The app will be available at http://localhost:13000
+```bash
+git clone https://github.com/MathiasGermandsen/boardom-backend.git
+git clone <this-repo-url> boardom-frontend
+```
 
-## Environment Variables
+### 2. Start the backend
 
-| Variable              | Description                                      |
-| --------------------- | ------------------------------------------------ |
-| `AUTH0_DOMAIN`        | Auth0 tenant domain                              |
-| `AUTH0_CLIENT_ID`     | Auth0 application client ID                      |
-| `AUTH0_CLIENT_SECRET` | Auth0 application client secret                  |
-| `IP_ADDRESS_PORT`     | Database API base URL (e.g. `http://host:8080/`) |
-| `POWER_API_URL`       | Power API base URL (e.g. `http://host:9090`)     |
+```bash
+cd boardom-backend
+```
+
+Create a `.env` file in the backend root with the required environment variables (see the backend README for details), then run:
+
+```bash
+docker compose up -d
+```
+
+Wait until all backend services are healthy before continuing.
+
+### 3. Start the frontend
+
+```bash
+cd ../boardom-frontend
+```
+
+Copy the example environment file and fill in your values:
+
+```bash
+cp .env.example .env
+```
+
+Then edit `.env` with your actual credentials (see [`.env.example`](.env.example) for the template).
+
+Then run:
+
+```bash
+docker compose up -d
+```
+
+### 4. Open the app
+
+Once both stacks are running, open the frontend in your browser:
+
+```
+http://localhost:13000
+```
+
+## Environment Variables (Frontend)
+
+| Variable | Description |
+| --- | --- |
+| `AUTH0_DOMAIN` | Auth0 tenant domain |
+| `AUTH0_CLIENT_ID` | Auth0 application client ID |
+| `AUTH0_CLIENT_SECRET` | Auth0 application client secret |
+| `AUTH0_AUDIENCE` | Auth0 API audience |
+| `IP_ADDRESS_PORT` | Backend database API base URL (e.g. `http://host:8080/`) |
+| `POWER_API_URL` | Backend power API base URL (e.g. `http://host:9090`) |
 
 ## Project Structure
 
