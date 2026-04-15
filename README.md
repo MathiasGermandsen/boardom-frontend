@@ -23,7 +23,7 @@ The Boardom project consists of two repositories that each run their own Docker 
 
 | Repository | Description | URL |
 | --- | --- | --- |
-| **Backend** | API, database, and MQTT services | https://github.com/MathiasGermandsen/boardom-backend.git |
+| **Backend** | API, database | https://github.com/MathiasGermandsen/boardom-backend.git |
 | **Frontend** | Blazor Server dashboard (this repo) | _you are here_ |
 
 ### 1. Clone both repositories
