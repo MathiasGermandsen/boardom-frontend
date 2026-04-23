@@ -16,17 +16,19 @@ public class PowerService
   private readonly ILogger<PowerService> _logger;
   private readonly HttpClient _httpClient;
   private readonly IHttpClientFactory _httpClientFactory;
+  private readonly ApiTokenService _tokenService;
 
   public string SelectedCompany = "No Selected";
   public double SelectedMaxPrice = 1.0;
   public List<string> AllCompanies = new List<string>();
 
-  public PowerService(ILogger<PowerService> logger, HttpClient httpClient, IHttpClientFactory httpClientFactory)
+  public PowerService(ILogger<PowerService> logger, HttpClient httpClient, IHttpClientFactory httpClientFactory, ApiTokenService tokenService)
   {
     _logger = logger;
     _httpClient = httpClient;
     _httpClient.BaseAddress = new Uri("https://stromligning.dk");
     _httpClientFactory = httpClientFactory;
+    _tokenService = tokenService;
   }
 
   public async Task<bool> SaveSelectionAsync(string company, double maxPrice)
@@ -40,7 +42,13 @@ public class PowerService
     try
     {
       var client = _httpClientFactory.CreateClient("PowerApi");
-      var payload = new { company, price = maxPrice };
+      string? userId = await _tokenService.GetUserIdAsync();
+      if (string.IsNullOrEmpty(userId))
+      {
+        _logger.LogError("Could not retrieve user ID from access token");
+        return false;
+      }
+      var payload = new { company, price = maxPrice, userId };
       var json = JsonConvert.SerializeObject(payload);
       var content = new StringContent(json, Encoding.UTF8, "application/json");
 

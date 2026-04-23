@@ -20,7 +20,7 @@ builder.Services.AddRazorComponents()
 // application services
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddSingleton<PendingDeviceStore>();
-builder.Services.AddSingleton<PowerService>();
+builder.Services.AddScoped<PowerService>();
 builder.Services.AddScoped<DeviceFunctions>();
 builder.Services.AddScoped<DataFunctions>();
 builder.Services.AddScoped<GroupFunctions>();
