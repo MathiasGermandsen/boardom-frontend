@@ -104,7 +104,8 @@ public class PowerService
 
       var raw = await response.Content.ReadAsStringAsync();
       _logger.LogInformation("Power settings response: {Raw}", raw);
-      var settings = JsonConvert.DeserializeObject<PowerSettings>(raw);
+      var settingsList = JsonConvert.DeserializeObject<List<PowerSettings>>(raw);
+      var settings = settingsList?.FirstOrDefault();
 
       return (settings?.Company, settings?.Price);
     }
