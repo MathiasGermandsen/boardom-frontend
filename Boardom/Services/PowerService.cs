@@ -11,6 +11,15 @@ public class Company
   public string Name { get; set; }
 }
 
+public class PowerSettings
+{
+  [JsonProperty("company")]
+  public string? Company { get; set; }
+
+  [JsonProperty("price")]
+  public double? Price { get; set; }
+}
+
 public class PowerService
 {
   private readonly ILogger<PowerService> _logger;
@@ -83,23 +92,25 @@ public class PowerService
         return (null, null);
       }
 
+      _logger.LogInformation("Fetching power settings for userId: {UserId}", userId);
       var response = await client.GetAsync($"/power-table?userId={Uri.EscapeDataString(userId)}");
+
       if (!response.IsSuccessStatusCode)
       {
-        _logger.LogWarning("No saved power settings found. Status: {StatusCode}", response.StatusCode);
+        var body = await response.Content.ReadAsStringAsync();
+        _logger.LogWarning("No saved power settings found. Status: {StatusCode}, Body: {Body}", response.StatusCode, body);
         return (null, null);
       }
 
       var raw = await response.Content.ReadAsStringAsync();
-      var settings = JsonConvert.DeserializeObject<dynamic>(raw);
-      string? company = settings?.company;
-      double? price = settings?.price;
+      _logger.LogInformation("Power settings response: {Raw}", raw);
+      var settings = JsonConvert.DeserializeObject<PowerSettings>(raw);
 
-      return (company, price);
+      return (settings?.Company, settings?.Price);
     }
     catch (Exception ex)
     {
-      _logger.LogError(ex, "Failed to fetch saved power settings");
+      _logger.LogError(ex, "Failed to fetch saved power settings: {Message}", ex.Message);
       return (null, null);
     }
   }
