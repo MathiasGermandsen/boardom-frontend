@@ -71,6 +71,39 @@ public class PowerService
     return true;
   }
 
+  public async Task<(string? company, double? price)> GetSavedSettingsAsync()
+  {
+    try
+    {
+      var client = _httpClientFactory.CreateClient("PowerApi");
+      string? userId = await _tokenService.GetUserIdAsync();
+      if (string.IsNullOrEmpty(userId))
+      {
+        _logger.LogError("Could not retrieve user ID from access token");
+        return (null, null);
+      }
+
+      var response = await client.GetAsync($"/power-table?userId={Uri.EscapeDataString(userId)}");
+      if (!response.IsSuccessStatusCode)
+      {
+        _logger.LogWarning("No saved power settings found. Status: {StatusCode}", response.StatusCode);
+        return (null, null);
+      }
+
+      var raw = await response.Content.ReadAsStringAsync();
+      var settings = JsonConvert.DeserializeObject<dynamic>(raw);
+      string? company = settings?.company;
+      double? price = settings?.price;
+
+      return (company, price);
+    }
+    catch (Exception ex)
+    {
+      _logger.LogError(ex, "Failed to fetch saved power settings");
+      return (null, null);
+    }
+  }
+
   public async Task<List<string>> GetCompaniesAsync()
   {
     List<string> companies = new List<string>();

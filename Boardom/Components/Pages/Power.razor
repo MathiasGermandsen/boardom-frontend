@@ -93,8 +93,13 @@
       energyCompanies = PowerService.AllCompanies;
     }
 
-    selectedCompany = PowerService.SelectedCompany;
-    maxPricePerKwh = PowerService.SelectedMaxPrice;
+    var (savedCompany, savedPrice) = await PowerService.GetSavedSettingsAsync();
+
+    selectedCompany = !string.IsNullOrEmpty(savedCompany) ? savedCompany : "";
+    maxPricePerKwh = savedPrice.HasValue ? savedPrice.Value : 1;
+
+    PowerService.SelectedCompany = selectedCompany;
+    PowerService.SelectedMaxPrice = maxPricePerKwh;
   }
 
   private async Task SaveSettings()
