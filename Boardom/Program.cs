@@ -20,6 +20,9 @@ builder.Services.AddRazorComponents()
 // application services
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddSingleton<PendingDeviceStore>();
+builder.Services.AddSingleton<PowerApiTokenService>();
+builder.Services.AddHostedService(sp => sp.GetRequiredService<PowerApiTokenService>());
+builder.Services.AddTransient<PowerApiAuthHandler>();
 builder.Services.AddScoped<PowerService>();
 builder.Services.AddScoped<DeviceFunctions>();
 builder.Services.AddScoped<DataFunctions>();
@@ -68,7 +71,7 @@ builder.Services.AddHttpClient("PowerApi", client =>
 {
   client.BaseAddress = new Uri(builder.Configuration["ApiSettings:PowerApiUrl"]!);
   client.Timeout = TimeSpan.FromSeconds(10);
-});
+}).AddHttpMessageHandler<PowerApiAuthHandler>();
 
 string? auth0Domain = builder.Configuration["Auth0:Domain"];
 

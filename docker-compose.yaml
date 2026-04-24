@@ -11,6 +11,8 @@
       - ASPNETCORE_FORWARDEDHEADERS_ENABLED=true
       - ApiSettings__DatabaseApiUrl=${IP_ADDRESS_PORT}
       - ApiSettings__PowerApiUrl=${POWER_API_URL}
+      - PowerApi__AdminKey=${POWER_API_ADMIN_KEY}
+      - PowerApi__ServiceName=${POWER_API_SERVICE_NAME:-boardom-frontend}
       - Auth0__Domain=${AUTH0_DOMAIN}
       - Auth0__ClientId=${AUTH0_CLIENT_ID}
       - Auth0__ClientSecret=${AUTH0_CLIENT_SECRET}
