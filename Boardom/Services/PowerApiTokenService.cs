@@ -238,11 +238,10 @@ public class PowerApiTokenService : IHostedService, IDisposable
 
   private HttpClient CreateAdminClient(string adminKey)
   {
-    var client = _httpClientFactory.CreateClient("PowerApi");
-    // Replace any existing default Authorization header with the admin key header
+    // Use the handler-free admin client to avoid circular dependency with PowerApiAuthHandler
+    var client = _httpClientFactory.CreateClient("PowerApiAdmin");
     client.DefaultRequestHeaders.Remove("X-Admin-Key");
     client.DefaultRequestHeaders.Add("X-Admin-Key", adminKey);
-    client.DefaultRequestHeaders.Authorization = null;
     return client;
   }
 

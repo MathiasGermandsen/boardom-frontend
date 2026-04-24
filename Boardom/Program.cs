@@ -73,6 +73,13 @@ builder.Services.AddHttpClient("PowerApi", client =>
   client.Timeout = TimeSpan.FromSeconds(10);
 }).AddHttpMessageHandler<PowerApiAuthHandler>();
 
+// Separate client for admin token calls — must NOT have PowerApiAuthHandler attached
+builder.Services.AddHttpClient("PowerApiAdmin", client =>
+{
+  client.BaseAddress = new Uri(builder.Configuration["ApiSettings:PowerApiUrl"]!);
+  client.Timeout = TimeSpan.FromSeconds(10);
+});
+
 string? auth0Domain = builder.Configuration["Auth0:Domain"];
 
 if (string.IsNullOrWhiteSpace(auth0Domain))
