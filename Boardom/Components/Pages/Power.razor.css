@@ -243,3 +243,63 @@
     width: 100%;
   }
 }
+
+/* ===== Kiosk / Touch Optimized (1280x720) ===== */
+.power-container.kiosk {
+  max-width: 900px;
+  padding: 1.5rem 2rem;
+}
+
+.power-container.kiosk .power-header {
+  margin-bottom: 1.5rem;
+}
+
+.power-container.kiosk .power-title {
+  font-size: 2.4rem;
+}
+
+.power-container.kiosk .settings-form {
+  padding: 1.75rem 2rem;
+}
+
+.power-container.kiosk .form-section {
+  margin-bottom: 1.5rem;
+}
+
+.power-container.kiosk .form-label {
+  font-size: 1.15rem;
+}
+
+.power-container.kiosk .form-hint {
+  margin-bottom: 0.6rem;
+}
+
+.power-container.kiosk .price-input,
+.power-container.kiosk .company-dropdown {
+  padding: 1rem 1.25rem;
+  font-size: 1.15rem;
+  min-height: 56px;
+  border-radius: 10px;
+}
+
+.power-container.kiosk .price-input {
+  padding-right: 4rem;
+}
+
+.power-container.kiosk .input-suffix {
+  font-size: 1rem;
+}
+
+.power-container.kiosk .btn-primary,
+.power-container.kiosk .btn-secondary {
+  min-height: 56px;
+  font-size: 1.1rem;
+  padding: 1rem 2rem;
+  border-radius: 10px;
+}
+
+/* Remove hover transforms on touch screens */
+.power-container.kiosk .btn-primary:hover:not(:disabled),
+.power-container.kiosk .btn-secondary:hover:not(:disabled) {
+  transform: none;
+}

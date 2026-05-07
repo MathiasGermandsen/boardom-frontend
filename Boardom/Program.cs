@@ -19,6 +19,7 @@ builder.Services.AddRazorComponents()
 
 // application services
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddSingleton<KioskModeService>();
 builder.Services.AddSingleton<PendingDeviceStore>();
 builder.Services.AddSingleton<PowerApiTokenService>();
 builder.Services.AddHostedService(sp => sp.GetRequiredService<PowerApiTokenService>());
