@@ -14,23 +14,63 @@
 
   <div class="power-content">
     <div class="settings-form">
-      <!-- Max Price Per kWh Section -->
+      <!-- Selection Mode Section -->
       <div class="form-section">
-        <label for="maxPrice" class="form-label">Max Price Per kWh (DKK)</label>
-        <div class="input-wrapper">
-          <input
-            type="number"
-            id="maxPrice"
-            class="price-input"
-            placeholder="Enter max price"
-            step="0.01"
-            min="0"
-            @bind="maxPricePerKwh"
-          />
-          <span class="input-suffix">DKK</span>
-        </div>
-        <p class="form-hint">Set the maximum price you're willing to pay per kilowatt-hour</p>
+        <label for="selectionMode" class="form-label">Selection Mode</label>
+        <p class="form-hint">Choose how to manage your power settings</p>
+        
+        <select
+          id="selectionMode"
+          class="company-dropdown"
+          @bind="selectionMode"
+        >
+          <option value="">-- Choose a mode --</option>
+          <option value="price-based">Price Based</option>
+          <option value="hour-based">Hour Based</option>
+        </select>
       </div>
+
+      <!-- Max Price Per kWh Section (Price Based) -->
+      @if (selectionMode == "price-based")
+      {
+        <div class="form-section">
+          <label for="maxPrice" class="form-label">Max Price Per kWh (DKK)</label>
+          <div class="input-wrapper">
+            <input
+              type="number"
+              id="maxPrice"
+              class="price-input"
+              placeholder="Enter max price"
+              step="0.01"
+              min="0"
+              @bind="maxPricePerKwh"
+            />
+            <span class="input-suffix">DKK</span>
+          </div>
+          <p class="form-hint">Set the maximum price you're willing to pay per kilowatt-hour</p>
+        </div>
+      }
+
+      <!-- Number of Hours Section (Hour Based) -->
+      @if (selectionMode == "hour-based")
+      {
+        <div class="form-section">
+          <label for="numberOfHours" class="form-label">Number of Hours</label>
+          <div class="input-wrapper">
+            <input
+              type="number"
+              id="numberOfHours"
+              class="price-input"
+              placeholder="Enter number of hours"
+              step="1"
+              min="0"
+              @bind="numberOfHours"
+            />
+            <span class="input-suffix">hours</span>
+          </div>
+          <p class="form-hint">Set the number of hours for power management</p>
+        </div>
+      }
 
       <!-- Energy Company Selection Section -->
       <div class="form-section">
@@ -76,7 +116,9 @@
 </div>
 
 @code {
+  private string selectionMode = "";
   private double maxPricePerKwh;
+  private int numberOfHours;
   private string selectedCompany;
   private List<string> energyCompanies = new();
   private string saveStatus = "";
