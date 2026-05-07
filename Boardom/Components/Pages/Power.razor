@@ -5,7 +5,11 @@
 
 <PageTitle>Power Settings - BOARDOM</PageTitle>
 
-<div class="power-container">
+@{
+    var kioskClass = IsKioskMode ? "kiosk" : "";
+}
+
+<div class="power-container @kioskClass">
   <div class="power-header">
     <div>
       <h1 class="power-title">Power Settings</h1>
@@ -117,6 +121,9 @@
 </div>
 
 @code {
+  [CascadingParameter(Name = "IsKioskMode")]
+  private bool IsKioskMode { get; set; }
+
   private string selectionMode = "";
   private double maxPricePerKwh;
   private int numberOfHours;

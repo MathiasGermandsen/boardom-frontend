@@ -1,14 +1,27 @@
 ﻿@inherits LayoutComponentBase
 @inject NavigationManager NavigationManager
+@inject Boardom.Services.KioskModeService KioskMode
 
+<CascadingValue Name="IsKioskMode" Value="KioskMode.IsKioskMode">
 @{
     var relativePath = NavigationManager.ToBaseRelativePath(NavigationManager.Uri).Split('?')[0].TrimEnd('/');
-    var isLandingPage = NavigationManager.Uri == NavigationManager.BaseUri ||
+    var isLandingPage = !KioskMode.IsKioskMode && (
+                        NavigationManager.Uri == NavigationManager.BaseUri ||
                         relativePath == "" ||
-                        relativePath == "howto";
+                        relativePath == "howto");
 }
 
-@if (isLandingPage)
+@if (KioskMode.IsKioskMode)
+{
+    if (relativePath != "power")
+    {
+        NavigationManager.NavigateTo("/power", replace: true);
+    }
+    <div class="kiosk-layout">
+        @Body
+    </div>
+}
+else if (isLandingPage)
 {
     <div class="landing-layout">
         @Body
@@ -28,6 +41,7 @@ else
         </main>
     </div>
 }
+</CascadingValue>
 
 <div id="blazor-error-ui">
     An unhandled error has occurred.
