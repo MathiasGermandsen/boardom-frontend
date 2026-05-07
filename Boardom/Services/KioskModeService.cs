@@ -2,11 +2,19 @@ namespace Boardom.Services;
 
 public class KioskModeService
 {
-    public bool IsKioskMode { get; }
+    public bool IsKioskMode { get; private set; }
 
-    public KioskModeService()
+    public event Action? OnChange;
+
+    public void EnableKioskMode()
     {
-        var value = Environment.GetEnvironmentVariable("KIOSK_MODE");
-        IsKioskMode = string.Equals(value, "true", StringComparison.OrdinalIgnoreCase);
+        IsKioskMode = true;
+        OnChange?.Invoke();
+    }
+
+    public void DisableKioskMode()
+    {
+        IsKioskMode = false;
+        OnChange?.Invoke();
     }
 }

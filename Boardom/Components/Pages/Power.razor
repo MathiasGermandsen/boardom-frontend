@@ -1,6 +1,8 @@
 @page "/power"
 @using Boardom.Services
 @inject PowerService PowerService
+@inject KioskModeService KioskMode
+@inject NavigationManager NavigationManager
 
 <PageTitle>Power Settings - BOARDOM</PageTitle>
 
@@ -14,6 +16,12 @@
       <h1 class="power-title">Power Settings</h1>
       <p class="power-subtitle">Configure energy pricing and provider preferences</p>
     </div>
+    @if (IsKioskMode)
+    {
+      <button class="btn-exit-kiosk" @onclick="ExitKioskMode">
+        <span>✕</span> Exit Kiosk Mode
+      </button>
+    }
   </div>
 
   <div class="power-content">
@@ -168,5 +176,11 @@
   private string GetButtonClass()
   {
     return saveStatus == "success" ? "btn-success" : saveStatus == "error" ? "btn-error" : "";
+  }
+
+  private void ExitKioskMode()
+  {
+    KioskMode.DisableKioskMode();
+    NavigationManager.NavigateTo("/home", replace: true);
   }
 }

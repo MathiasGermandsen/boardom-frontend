@@ -1,4 +1,7 @@
-﻿<div class="top-row navbar navbar-dark navbar-boardom">
+﻿@inject Boardom.Services.KioskModeService KioskMode
+@inject NavigationManager NavigationManager
+
+<div class="top-row navbar navbar-dark navbar-boardom">
     <div class="navbar-container">
         <a class="navbar-brand" href="home">
             <span class="brand-icon">◆</span>
@@ -58,6 +61,15 @@
             </div>
         </div>
         <div class="nav-section">
+            <div class="nav-section-title">Display</div>
+            <div class="nav-item">
+                <button type="button" class="nav-link kiosk-btn" @onclick="EnterKioskMode">
+                    <span class="nav-icon">🖥️</span>
+                    <span class="nav-text">Kiosk Mode</span>
+                </button>
+            </div>
+        </div>
+        <div class="nav-section">
             <div class="nav-section-title">Account</div>
             <div class="nav-item">
                 <form method="post" action="/Account/Logout" style="display: contents;">
@@ -71,3 +83,11 @@
         </div>
     </nav>
 </div>
+
+@code {
+    private void EnterKioskMode()
+    {
+        KioskMode.EnableKioskMode();
+        NavigationManager.NavigateTo("/power", replace: true);
+    }
+}

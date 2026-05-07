@@ -118,6 +118,14 @@
     width: 100%;
 }
 
+.kiosk-btn {
+    cursor: pointer;
+    background: transparent;
+    border: none;
+    text-align: left;
+    width: 100%;
+}
+
 .nav-section:first-of-type {
     margin-top: 0;
 }
