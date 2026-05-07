@@ -1,5 +1,6 @@
 @page "/power"
 @using Boardom.Services
+@using Boardom.Models
 @inject PowerService PowerService
 
 <PageTitle>Power Settings - BOARDOM</PageTitle>
@@ -135,19 +136,37 @@
       energyCompanies = PowerService.AllCompanies;
     }
 
-    var (savedCompany, savedPrice) = await PowerService.GetSavedSettingsAsync();
+    PowerObject powObj = await PowerService.GetSavedSettingsAsync();
 
-    selectedCompany = !string.IsNullOrEmpty(savedCompany) ? savedCompany : "";
-    maxPricePerKwh = savedPrice.HasValue ? savedPrice.Value : 1;
+    if (powObj == null)
+    {
+      return; // no error handling lol
+    }
 
+    selectionMode = powObj.Selection;
+    selectedCompany = powObj.Company;
+    numberOfHours = powObj.Hours;
+    maxPricePerKwh = powObj.MaxPrice;
+
+    PowerService.SelectionMode = selectionMode;
     PowerService.SelectedCompany = selectedCompany;
+    PowerService.Hours = numberOfHours;
     PowerService.SelectedMaxPrice = maxPricePerKwh;
   }
 
   private async Task SaveSettings()
   {
     isSaving = true;
-    bool success = await PowerService.SaveSelectionAsync(selectedCompany, maxPricePerKwh);
+
+    PowerObject powObj = new PowerObject()
+    {
+      Selection = selectionMode,
+      Company = selectedCompany,
+      Hours = numberOfHours,
+      MaxPrice = maxPricePerKwh
+    };
+
+    bool success = await PowerService.SaveSelectionAsync(powObj);
     
     saveStatus = success ? "success" : "error";
     StateHasChanged();

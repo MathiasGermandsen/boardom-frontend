@@ -15,7 +15,7 @@ public class ApiTokenService
     _logger = logger;
   }
 
-  private async Task<string?> GetAccessTokenAsync()
+  public async Task<string?> GetAccessTokenAsync()
   {
     HttpContext? httpContext = _httpContextAccessor.HttpContext;
 
