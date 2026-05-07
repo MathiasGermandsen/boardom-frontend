@@ -2,10 +2,23 @@ using System.Reflection;
 using System.Text;
 using Boardom.Components.Pages;
 using Newtonsoft.Json;
-using Boardom.Models;
 
 namespace Boardom.Services;
 
+public class Company
+{
+  [JsonProperty("name")]
+  public string Name { get; set; }
+}
+
+public class PowerSettings
+{
+  [JsonProperty("company")]
+  public string? Company { get; set; }
+
+  [JsonProperty("price")]
+  public double? Price { get; set; }
+}
 
 public class PowerService
 {
@@ -14,9 +27,7 @@ public class PowerService
   private readonly IHttpClientFactory _httpClientFactory;
   private readonly ApiTokenService _tokenService;
 
-  public string SelectionMode = "No Selected";
   public string SelectedCompany = "No Selected";
-  public int Hours = 0;
   public double SelectedMaxPrice = 1.0;
   public List<string> AllCompanies = new List<string>();
 
@@ -29,9 +40,9 @@ public class PowerService
     _tokenService = tokenService;
   }
 
-  public async Task<bool> SaveSelectionAsync(PowerObject powObj)
+  public async Task<bool> SaveSelectionAsync(string company, double maxPrice)
   {
-    if (string.IsNullOrWhiteSpace(powObj.Company) || powObj.MaxPrice == 0)
+    if (string.IsNullOrWhiteSpace(company) || maxPrice == 0)
     {
       _logger.LogError("Invalid company or max price");
       return false;
@@ -39,20 +50,18 @@ public class PowerService
 
     try
     {
-      HttpClient client = _httpClientFactory.CreateClient("PowerApi");
-
-      powObj.UserId = await _tokenService.GetUserIdAsync();
-
-      if (string.IsNullOrEmpty(powObj.UserId))
+      var client = _httpClientFactory.CreateClient("PowerApi");
+      string? userId = await _tokenService.GetUserIdAsync();
+      if (string.IsNullOrEmpty(userId))
       {
         _logger.LogError("Could not retrieve user ID from access token");
         return false;
       }
+      var payload = new { company, price = maxPrice, userId };
+      var json = JsonConvert.SerializeObject(payload);
+      var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-      string json = JsonConvert.SerializeObject(powObj);
-      StringContent content = new StringContent(json, Encoding.UTF8, "application/json");
-
-      HttpResponseMessage response = await client.PostAsync("/power-table", content);
+      var response = await client.PostAsync("/power-table", content);
 
       if (!response.IsSuccessStatusCode)
       {
@@ -66,49 +75,44 @@ public class PowerService
       return false;
     }
 
-    SelectionMode = powObj.Selection;
-    SelectedCompany = powObj.Company;
-    Hours = powObj.Hours;
-    SelectedMaxPrice = powObj.MaxPrice;
+    SelectedCompany = company;
+    SelectedMaxPrice = maxPrice;
     return true;
   }
 
-  public async Task<PowerObject?> GetSavedSettingsAsync()
+  public async Task<(string? company, double? price)> GetSavedSettingsAsync()
   {
     try
     {
-      HttpClient client = _httpClientFactory.CreateClient("PowerApi");
-      
+      var client = _httpClientFactory.CreateClient("PowerApi");
       string? userId = await _tokenService.GetUserIdAsync();
-
       if (string.IsNullOrEmpty(userId))
       {
         _logger.LogError("Could not retrieve user ID from access token");
-        return null;
+        return (null, null);
       }
 
       _logger.LogInformation("Fetching power settings for userId: {UserId}", userId);
-
-      HttpResponseMessage response = await client.GetAsync($"/power-table?userId={Uri.EscapeDataString(userId)}");
-      string body = await response.Content.ReadAsStringAsync();
-
-      PowerObject powObj = JsonConvert.DeserializeObject<List<PowerObject>>(body)[0];
+      var response = await client.GetAsync($"/power-table?userId={Uri.EscapeDataString(userId)}");
 
       if (!response.IsSuccessStatusCode)
       {
-        _logger.LogWarning("Failed to get Power Settings. Code: {StatusCode} - Message: {Body}", response.StatusCode, body);
-        return null;
+        var body = await response.Content.ReadAsStringAsync();
+        _logger.LogWarning("No saved power settings found. Status: {StatusCode}, Body: {Body}", response.StatusCode, body);
+        return (null, null);
       }
 
-      _logger.LogInformation("Power settings response: {Raw}", body);
+      var raw = await response.Content.ReadAsStringAsync();
+      _logger.LogInformation("Power settings response: {Raw}", raw);
+      var settingsList = JsonConvert.DeserializeObject<List<PowerSettings>>(raw);
+      var settings = settingsList?.FirstOrDefault();
 
-      return powObj;
-      
+      return (settings?.Company, settings?.Price);
     }
     catch (Exception ex)
     {
       _logger.LogError(ex, "Failed to fetch saved power settings: {Message}", ex.Message);
-      return null;
+      return (null, null);
     }
   }
 
