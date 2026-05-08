@@ -1,5 +1,8 @@
 ﻿@inherits LayoutComponentBase
 @inject NavigationManager NavigationManager
+@implements IAsyncDisposable
+@inject IJSRuntime JS
+
 
 @{
     var relativePath = NavigationManager.ToBaseRelativePath(NavigationManager.Uri).Split('?')[0].TrimEnd('/');
@@ -34,3 +37,50 @@ else
     <a href="" class="reload">Reload</a>
     <a class="dismiss">🗙</a>
 </div>
+
+@code {
+    private bool isSmallScreen = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CheckAndEnforceScreenSize();
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            JS.InvokeVoidAsync("setupResizeListener", DotNetObjectReference.Create(this));
+        }
+    }
+
+    private async Task CheckAndEnforceScreenSize()
+    {
+        var relativePath = NavigationManager.ToBaseRelativePath(NavigationManager.Uri).Split('?')[0].TrimEnd('/');
+
+        //720p and smaller screens are only allowed to see power pi and login.
+        var isAllowedPage = relativePath == "login" || relativePath == "power";
+
+        var windowHeight = await JS.InvokeAsync<int>("getWindowHeight");
+
+        if (windowHeight <= 720 && !isAllowedPage)
+        {
+           NavigationManager.NavigateTo("/power", forceLoad: true);
+        }
+    }
+
+    [JSInvokable]
+    public async Task onWindowResize()
+    {
+        await CheckAndEnforceScreenSize();
+    }
+
+    async ValueTask IAsyncDisposable.DisposeAsync()
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("removeResizeListener");
+        }
+        catch { }
+    }
+}
