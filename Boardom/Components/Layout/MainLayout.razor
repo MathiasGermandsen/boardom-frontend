@@ -40,32 +40,49 @@ else
 
 @code {
     private bool isSmallScreen = false;
+    private Task<AuthenticationState>? authState;
 
-    protected override async Task OnInitializedAsync()
-    {
-        await CheckAndEnforceScreenSize();
-    }
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthenticationState { get; set; } = null!;
 
-    protected override void OnAfterRender(bool firstRender)
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            JS.InvokeVoidAsync("setupResizeListener", DotNetObjectReference.Create(this));
+            await CheckAndEnforceScreenSize();
+            await JS.InvokeVoidAsync("setupResizeListener", DotNetObjectReference.Create(this));
         }
     }
 
     private async Task CheckAndEnforceScreenSize()
     {
+        var authState = await AuthenticationState;
+        var isAuthenticated = authState.User?.Identity?.IsAuthenticated ?? false;
+
         var relativePath = NavigationManager.ToBaseRelativePath(NavigationManager.Uri).Split('?')[0].TrimEnd('/');
 
         //720p and smaller screens are only allowed to see power pi and login.
-        var isAllowedPage = relativePath == "login" || relativePath == "power";
-
         var windowHeight = await JS.InvokeAsync<int>("getWindowHeight");
 
-        if (windowHeight <= 720 && !isAllowedPage)
+        if (windowHeight <= 720)
         {
-           NavigationManager.NavigateTo("/power", forceLoad: true);
+            //if user is NOT LOGGED IN: only allow home and login
+            if(!isAuthenticated)
+            {
+                var isAllowedPage = relativePath == "" || relativePath == "login" || relativePath == "home";
+                if(!isAllowedPage)
+                {
+                    NavigationManager.NavigateTo("/home");
+                }
+            }
+            //If user IS logged in: force load to powerpi after login
+            else 
+            {
+                if (relativePath !="power")
+                {
+                    NavigationManager.NavigateTo("/power", forceLoad: true);
+                }
+            }
         }
     }
 
