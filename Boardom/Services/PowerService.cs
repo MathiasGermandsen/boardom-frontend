@@ -137,4 +137,42 @@ public class PowerService
 
     return companies;
   }
+
+//======Charging Status =========//
+  public async Task <bool> GetChargingStatusAsync()
+  {
+    try
+    {
+      string? userId = await _tokenService.GetUserIdAsync();
+      if (string.IsNullOrEmpty(userId))
+      {
+        _logger.LogError("Could not retrieve user ID from access token");
+        return false;
+      }
+
+      HttpClient client = _httpClientFactory.CreateClient("PowerApi");
+
+      HttpResponseMessage response = await client.GetAsync($"/charging?userId={Uri.EscapeDataString(userId)}");
+
+      string body = await response.Content.ReadAsStringAsync();
+      _logger.LogInformation("Charging status response: {StatusCode} - {Body}", response.StatusCode, body); 
+
+      if (!response.IsSuccessStatusCode)
+      {
+        _logger.LogError("Failed to get charging status. Code: {StatusCode}", response.StatusCode);
+        return false;
+      }  
+
+      // string body = await response.Content.ReadAsStringAsync();
+      var jsonObject = JsonConvert.DeserializeObject<dynamic>(body);
+      bool isCharging = jsonObject.isCharging ?? jsonObject?.charging ?? false;
+      return isCharging;
+    }
+    catch (Exception ex)
+    {
+      _logger.LogError(ex, "Failed to fetch charging status: {Message}", ex.Message);
+      return false;
+    }
+  }
 }
+
