@@ -249,6 +249,12 @@
     }
 }
 
+ @media(max-height: 720px) {
+        .nav-section:not(:last-child) {
+            display: none !important;
+        }
+    }
+
 @media (min-width: 641px) {
     .navbar-toggler {
         display: none;
@@ -271,6 +277,8 @@
         animation: none;
     }
 }
+
+
 
 .logout-btn {
     background: none;

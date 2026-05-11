@@ -91,6 +91,24 @@
         </select>
       </div>
 
+      <div class="charging-status-section">
+          <div class="battery-container @(isCharging ? "charging" : "idle")">
+            <div class="battery-bar">
+              <div class="battery-fill @(isCharging ? "charging-active" : "")"></div>
+                </div>
+                  <p class="battery-status">
+                    @if (isLoadingChargeStatus)
+                    {
+                        <span>Loading charge status...</span>
+                    }
+                    else
+                    {
+                        <span>@(isCharging ? "🔋 Currently Charging" : "🔌 Not Charging")</span>
+                    }
+              </p>
+          </div>
+      </div>
+
       <!-- Action Buttons -->
       <div class="form-actions">
         <button class="btn-primary @GetButtonClass()" @onclick="SaveSettings" disabled="@isSaving">
@@ -98,7 +116,7 @@
             @if (saveStatus == "success")
             {
               <span class="feedback-icon">✓</span>
-              <span>Saved!</span>
+              <span>Saved! Refresh page in 5 minutes for updated charging status</span>
             }
             else if (saveStatus == "error")
             {
@@ -124,6 +142,9 @@
   private List<string> energyCompanies = new();
   private string saveStatus = "";
   private bool isSaving = false;
+
+  private bool isCharging = false;
+  private bool isLoadingChargeStatus = true;
 
   protected override async Task OnInitializedAsync()
   {
@@ -152,6 +173,9 @@
     PowerService.SelectedCompany = selectedCompany;
     PowerService.Hours = numberOfHours;
     PowerService.SelectedMaxPrice = maxPricePerKwh;
+
+    isCharging = await PowerService.GetChargingStatusAsync();
+    isLoadingChargeStatus = false;
   }
 
   private async Task SaveSettings()
