@@ -62,12 +62,12 @@ else
 
         string? relativePath = NavigationManager.ToBaseRelativePath(NavigationManager.Uri).Split('?')[0].TrimEnd('/');
 
-        //720p and smaller screens are only allowed to see power pi and login.
+        //900p and smaller screens are only allowed to see power pi and login.
         int windowHeight = await JS.InvokeAsync<int>("getWindowHeight");
         
         _logger.LogInformation($"Device Window Height: {windowHeight}");
             
-        if (windowHeight <= 720)
+        if (windowHeight <= 900)
         {
             //if user is NOT LOGGED IN: only allow home and login
             if(!isAuthenticated)
