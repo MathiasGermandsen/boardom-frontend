@@ -2,6 +2,7 @@
 @inject NavigationManager NavigationManager
 @implements IAsyncDisposable
 @inject IJSRuntime JS
+@inject ILogger<MainLayout> _logger
 
 
 @{
@@ -56,20 +57,22 @@ else
 
     private async Task CheckAndEnforceScreenSize()
     {
-        var authState = await AuthenticationState;
-        var isAuthenticated = authState.User?.Identity?.IsAuthenticated ?? false;
+        AuthenticationState? authState = await AuthenticationState;
+        bool isAuthenticated = authState.User?.Identity?.IsAuthenticated ?? false;
 
-        var relativePath = NavigationManager.ToBaseRelativePath(NavigationManager.Uri).Split('?')[0].TrimEnd('/');
+        string? relativePath = NavigationManager.ToBaseRelativePath(NavigationManager.Uri).Split('?')[0].TrimEnd('/');
 
         //720p and smaller screens are only allowed to see power pi and login.
-        var windowHeight = await JS.InvokeAsync<int>("getWindowHeight");
-
+        int windowHeight = await JS.InvokeAsync<int>("getWindowHeight");
+        
+        _logger.LogInformation($"Device Window Height: {windowHeight}");
+            
         if (windowHeight <= 720)
         {
             //if user is NOT LOGGED IN: only allow home and login
             if(!isAuthenticated)
             {
-                var isAllowedPage = relativePath == "" || relativePath == "login" || relativePath == "home";
+                bool isAllowedPage = relativePath == "" || relativePath == "login" || relativePath == "home";
                 if(!isAllowedPage)
                 {
                     NavigationManager.NavigateTo("/home");
