@@ -9,7 +9,6 @@
   <div class="power-header">
     <div>
       <h1 class="power-title">Power Settings</h1>
-      <p class="power-subtitle">Configure energy pricing and provider preferences</p>
     </div>
   </div>
 
@@ -18,7 +17,6 @@
       <!-- Selection Mode Section -->
       <div class="form-section">
         <label for="selectionMode" class="form-label">Selection Mode</label>
-        <p class="form-hint">Choose how to manage your power settings</p>
         
         <select
           id="selectionMode"
@@ -29,6 +27,7 @@
           <option value="price-based">Price Based</option>
           <option value="hour-based">Hour Based</option>
         </select>
+        <p class="form-hint">Choose how to manage your power settings</p>
       </div>
 
       <!-- Max Price Per kWh Section (Price Based) -->
@@ -75,9 +74,7 @@
 
       <!-- Energy Company Selection Section -->
       <div class="form-section">
-        <label for="energyCompany" class="form-label">Energy Company</label>
-        <p class="form-hint">Select your preferred energy company</p>
-        
+        <label for="energyCompany" class="form-label">Energy Company</label>        
         <select
           id="energyCompany"
           class="company-dropdown"
@@ -89,6 +86,7 @@
             <option value="@company">@company</option>
           }
         </select>
+        <p class="form-hint">Select your preferred energy company</p>
       </div>
 
       <div class="charging-status-section">

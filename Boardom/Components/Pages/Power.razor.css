@@ -9,7 +9,7 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 3rem;
+  margin-bottom: 1rem;
   animation: fadeInDown 0.6s ease-out;
 }
 
@@ -82,7 +82,7 @@
   border-radius: 8px;
   font-size: 1rem;
   color: #e8eef7;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   transition: all 0.2s ease;
   letter-spacing: 0.2px;
 }
@@ -116,7 +116,7 @@
   border-radius: 8px;
   font-size: 1rem;
   color: #e8eef7;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   transition: all 0.2s ease;
   letter-spacing: 0.2px;
   cursor: pointer;
@@ -139,8 +139,8 @@
 .form-actions {
   display: flex;
   gap: 1rem;
-  margin-top: 2.5rem;
-  padding-top: 2rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
   border-top: 1px solid rgba(59, 125, 217, 0.15);
 }
 
@@ -245,187 +245,208 @@
 }
 /* ===== Charging Status ===== */
 .charging-status-section {
-    margin-top: 2.5rem;
-    padding: 2rem;
-    background: rgba(26, 35, 50, 0.5);
-    border: 1px solid rgba(59, 125, 217, 0.2);
-    border-radius: 12px;
-    backdrop-filter: blur(10px);
-    animation: fadeInUp 0.6s ease-out 0.2s backwards;
+  margin-top: 2.5rem;
+  padding: 1rem;
+  background: rgba(26, 35, 50, 0.5);
+  border: 1px solid rgba(59, 125, 217, 0.2);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+  animation: fadeInUp 0.6s ease-out 0.2s backwards;
 }
 
 .battery-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .battery-bar {
-    width: 220px;
-    height: 60px;
-    border: 2px solid rgba(81, 207, 102, 0.6);
-    border-radius: 12px;
-    /* ✅ No overflow: hidden — was clipping glow and nub */
-    background: rgba(18, 25, 15, 0.8);
-    position: relative;
-    box-shadow:
-        inset 0 2px 8px rgba(0, 0, 0, 0.5),
-        0 0 20px rgba(81, 207, 102, 0.2);
+  width: 220px;
+  height: 60px;
+  border: 2px solid rgba(81, 207, 102, 0.6);
+  border-radius: 12px;
+  /* ✅ No overflow: hidden — was clipping glow and nub */
+  background: rgba(18, 25, 15, 0.8);
+  position: relative;
+  box-shadow:
+    inset 0 2px 8px rgba(0, 0, 0, 0.5),
+    0 0 20px rgba(81, 207, 102, 0.2);
 }
 
 /* Battery nub */
 .battery-bar::after {
-    content: '';
-    position: absolute;
-    right: -10px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 8px;
-    height: 30px;
-    background: rgba(81, 207, 102, 0.6);
-    border-radius: 0 4px 4px 0;
-    box-shadow: 0 0 10px rgba(81, 207, 102, 0.3);
-    transition: box-shadow 0.3s ease;
+  content: "";
+  position: absolute;
+  right: -10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 8px;
+  height: 30px;
+  background: rgba(81, 207, 102, 0.6);
+  border-radius: 0 4px 4px 0;
+  box-shadow: 0 0 10px rgba(81, 207, 102, 0.3);
+  transition: box-shadow 0.3s ease;
 }
 
 .battery-fill {
-    height: 100%;
-    width: 0%;
-    /* ✅ Stretched gradient so background-position can animate it */
-    background: linear-gradient(
-        90deg,
-        #51cf66 0%,
-        #69db7c 25%,
-        #51cf66 50%,
-        #69db7c 75%,
-        #51cf66 100%
-    );
-    background-size: 200% 100%;
-    border-radius: 10px; /* ✅ Clips fill instead of parent overflow:hidden */
-    transition: width 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    position: relative;
-    box-shadow:
-        inset 0 -2px 8px rgba(0, 0, 0, 0.3),
-        0 0 15px rgba(81, 207, 102, 0.5);
+  height: 100%;
+  width: 0%;
+  /* ✅ Stretched gradient so background-position can animate it */
+  background: linear-gradient(
+    90deg,
+    #51cf66 0%,
+    #69db7c 25%,
+    #51cf66 50%,
+    #69db7c 75%,
+    #51cf66 100%
+  );
+  background-size: 200% 100%;
+  border-radius: 10px; /* ✅ Clips fill instead of parent overflow:hidden */
+  transition: width 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  position: relative;
+  box-shadow:
+    inset 0 -2px 8px rgba(0, 0, 0, 0.3),
+    0 0 15px rgba(81, 207, 102, 0.5);
 }
 
 /* Wave shimmer overlay */
 .battery-fill::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    right: 0;
-    border-radius: 10px;
-    background: linear-gradient(
-        90deg,
-        transparent 0%,
-        rgba(255, 255, 255, 0.08) 25%,
-        rgba(255, 255, 255, 0.25) 50%,
-        rgba(255, 255, 255, 0.08) 75%,
-        transparent 100%
-    );
-    background-size: 200% 100%;
-    opacity: 0;
-    transition: opacity 0.3s ease;
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  border-radius: 10px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.08) 25%,
+    rgba(255, 255, 255, 0.25) 50%,
+    rgba(255, 255, 255, 0.08) 75%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
 /* ===== Keyframes ===== */
 
 /* ✅ Animates background-position instead of background shorthand */
 @keyframes gradient-shift {
-    0%   { background-position: 0% 50%; }
-    100% { background-position: 200% 50%; }
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 200% 50%;
+  }
 }
 
 /* ✅ Fixed coordinate space to match background-size: 200% */
 @keyframes wave-motion {
-    0%   { background-position: 100% 0; }
-    100% { background-position: -100% 0; }
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
 }
 
 @keyframes glow-pulse {
-    0%, 100% {
-        box-shadow:
-            inset 0 -2px 8px rgba(0, 0, 0, 0.3),
-            0 0 15px rgba(81, 207, 102, 0.5);
-    }
-    50% {
-        box-shadow:
-            inset 0 -2px 8px rgba(0, 0, 0, 0.3),
-            0 0 35px rgba(105, 219, 124, 0.85);
-    }
+  0%,
+  100% {
+    box-shadow:
+      inset 0 -2px 8px rgba(0, 0, 0, 0.3),
+      0 0 15px rgba(81, 207, 102, 0.5);
+  }
+  50% {
+    box-shadow:
+      inset 0 -2px 8px rgba(0, 0, 0, 0.3),
+      0 0 35px rgba(105, 219, 124, 0.85);
+  }
 }
 
 @keyframes nub-glow {
-    0%, 100% { box-shadow: 0 0 10px rgba(81, 207, 102, 0.3); }
-    50%       { box-shadow: 0 0 22px rgba(105, 219, 124, 0.7); }
+  0%,
+  100% {
+    box-shadow: 0 0 10px rgba(81, 207, 102, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 22px rgba(105, 219, 124, 0.7);
+  }
 }
 
 @keyframes fadeInOut {
-    0%, 100% { opacity: 1; }
-    50%       { opacity: 0.65; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.65;
+  }
 }
 
 /* ===== Charging Active States ===== */
 
 .battery-fill.charging-active {
-    width: 100%;
-    animation:
-        gradient-shift 2s linear infinite,
-        glow-pulse 1.5s ease-in-out infinite;
+  width: 100%;
+  animation:
+    gradient-shift 2s linear infinite,
+    glow-pulse 1.5s ease-in-out infinite;
 }
 
 .battery-fill.charging-active::before {
-    opacity: 1;
-    animation: wave-motion 2s linear infinite;
+  opacity: 1;
+  animation: wave-motion 2s linear infinite;
 }
 
 .battery-bar.charging::after {
-    animation: nub-glow 1.5s ease-in-out infinite;
+  animation: nub-glow 1.5s ease-in-out infinite;
 }
 
 /* ===== Status Text ===== */
 
 .battery-status {
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: #b0b9c3;
-    letter-spacing: 0.2px;
-    text-align: center;
-    min-height: 1.5rem;
-    transition: color 0.3s ease, text-shadow 0.3s ease;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #b0b9c3;
+  letter-spacing: 0.2px;
+  text-align: center;
+  min-height: 1.5rem;
+  transition:
+    color 0.3s ease,
+    text-shadow 0.3s ease;
 }
 
 .battery-container.charging .battery-status {
-    color: #69db7c;
-    text-shadow: 0 0 10px rgba(105, 219, 124, 0.4);
-    animation: fadeInOut 2s ease-in-out infinite;
+  color: #69db7c;
+  text-shadow: 0 0 10px rgba(105, 219, 124, 0.4);
+  animation: fadeInOut 2s ease-in-out infinite;
 }
 
 /* ===== Responsive ===== */
 
 @media (max-width: 640px) {
-    .battery-bar {
-        width: 180px;
-        height: 50px;
-    }
+  .battery-bar {
+    width: 180px;
+    height: 50px;
+  }
 
-    .battery-bar::after {
-        height: 24px;
-    }
+  .battery-bar::after {
+    height: 24px;
+  }
 
-    .battery-fill {
-        border-radius: 8px;
-    }
+  .battery-fill {
+    border-radius: 8px;
+  }
 
-    .battery-fill::before {
-        border-radius: 8px;
-    }
+  .battery-fill::before {
+    border-radius: 8px;
+  }
 
-    .battery-status {
-        font-size: 0.95rem;
-    }
+  .battery-status {
+    font-size: 0.95rem;
+  }
 }
